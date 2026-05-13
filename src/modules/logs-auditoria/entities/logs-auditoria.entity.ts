@@ -23,10 +23,10 @@ export class LogAuditoria {
   dataHora!: Date;
 
   @Column({ name: 'ip_origem', type: 'varchar', nullable: true })
-  ipOrigem!: string;
+  ipOrigem!: string | null;
 
   // Relação
-  @ManyToOne(() => Atendimento, (atendimento) => atendimento.logsAuditoria, { eager: false })
+  @ManyToOne(() => Atendimento, { eager: false })
   @JoinColumn({ name: 'atendimento_id' })
   atendimento!: Atendimento;
 }
