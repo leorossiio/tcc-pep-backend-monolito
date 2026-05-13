@@ -31,6 +31,4 @@ export class Medico {
   @UpdateDateColumn({ name: 'atualizado_em', type: 'timestamp' })
   atualizadoEm!: Date;
 
-  @OneToMany(() => Atendimento, (atendimento) => atendimento.medicoTriagem)
-  atendimentos!: Atendimento[];
 }

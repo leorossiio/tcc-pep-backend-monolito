@@ -58,11 +58,11 @@ export class Atendimento {
   classificacaoRisco!: RiscoManchester;
 
   // Relações
-  @ManyToOne(() => Paciente, (paciente) => paciente.atendimentos, { eager: false })
+  @ManyToOne(() => Paciente, { eager: false })
   @JoinColumn({ name: 'paciente_id' })
   paciente!: Paciente;
 
-  @ManyToOne(() => Medico, (medico) => medico.atendimentos, { eager: false })
+  @ManyToOne(() => Medico, { eager: false })
   @JoinColumn({ name: 'medico_triagem_id' })
   medicoTriagem!: Medico;
 
