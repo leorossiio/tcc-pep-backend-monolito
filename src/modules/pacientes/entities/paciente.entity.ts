@@ -3,9 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  OneToMany,
 } from 'typeorm';
-import { Atendimento } from '../../atendimentos/entities/atendimento.entity';
 
 @Entity('pacientes_pg')
 export class Paciente {
@@ -25,10 +23,10 @@ export class Paciente {
   dataNascimento!: Date;
 
   @Column({ name: 'telefone_contato', type: 'varchar', nullable: true })
-  telefoneContato!: string;
+  telefoneContato!: string | null;
 
   @Column({ name: 'tipagem_sanguinea', type: 'varchar', nullable: true })
-  tipagemSanguinea!: string;
+  tipagemSanguinea!: string | null;
 
   @Column({ name: 'consentimento_lgpd', type: 'boolean' })
   consentimentoLgpd!: boolean;
@@ -36,6 +34,4 @@ export class Paciente {
   @CreateDateColumn({ name: 'criado_em', type: 'timestamp' })
   criadoEm!: Date;
 
-  @OneToMany(() => Atendimento, (atendimento) => atendimento.paciente)
-  atendimentos!: Atendimento[];
 }
