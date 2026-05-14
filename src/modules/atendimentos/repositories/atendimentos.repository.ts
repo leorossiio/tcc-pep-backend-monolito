@@ -55,4 +55,20 @@ export class AtendimentosRepository {
   async remove(id: string): Promise<void> {
     await this.repo.delete(id);
   }
+
+  async findByPacienteId(pacienteId: string): Promise<Atendimento[]> {
+    return this.repo.find({ where: { pacienteId } });
+  }
+
+  async findByMedicoTriagemId(medicoTriagemId: string): Promise<Atendimento[]> {
+    return this.repo.find({ where: { medicoTriagemId } });
+  }
+
+  async findByIds(ids: string[]): Promise<Atendimento[]> {
+    if (ids.length === 0) return [];
+    return this.repo
+      .createQueryBuilder('a')
+      .where('a.id IN (:...ids)', { ids })
+      .getMany();
+  }
 }

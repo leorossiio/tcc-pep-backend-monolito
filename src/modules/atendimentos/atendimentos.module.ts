@@ -9,11 +9,8 @@ import { HistoricoClinicosModule } from '../historico-clinicos/historico-clinico
 
 @Module({
   imports: [
-    // Registra a entidade Atendimento no TypeORM para que o InjectRepository funcione
     TypeOrmModule.forFeature([Atendimento]),
-    // Importa o módulo MongoDB para o dual-write e join poliglota
     ConsultasLaudosModule,
-    // Importa o módulo de histórico clínico para buscar o _id correto no dual-write
     HistoricoClinicosModule,
   ],
   controllers: [AtendimentosController],

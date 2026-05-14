@@ -6,6 +6,7 @@ import {
 import { AtendimentosRepository } from '../repositories/atendimentos.repository';
 import { ConsultasLaudosService } from '../../consultas-laudos/services/consultas-laudos.service';
 import { HistoricoClinicosService } from '../../historico-clinicos/services/historico-clinicos.service';
+import { Atendimento } from '../entities/atendimento.entity';
 import { CreateAtendimentoDto } from '../dto/create-atendimento.dto';
 import { UpdateAtendimentoDto } from '../dto/update-atendimento.dto';
 
@@ -55,6 +56,24 @@ export class AtendimentosService {
 
   async findAll() {
     return this.atendimentosRepository.findAll();
+  }
+
+  async findByPacienteId(pacienteId: string): Promise<Atendimento[]> {
+    return this.atendimentosRepository.findByPacienteId(pacienteId);
+  }
+
+  async findComLaudosByMedicoId(medicoId: string) {
+    const atendimentos = await this.atendimentosRepository.findByMedicoTriagemId(medicoId);
+    return Promise.all(
+      atendimentos.map(async (a) => ({
+        ...a,
+        consultasLaudos: await this.consultasLaudosService.findByAtendimentoId(a.id),
+      }))
+    );
+  }
+
+  async findByIds(ids: string[]): Promise<Atendimento[]> {
+    return this.atendimentosRepository.findByIds(ids);
   }
 
   async findOne(id: string) {

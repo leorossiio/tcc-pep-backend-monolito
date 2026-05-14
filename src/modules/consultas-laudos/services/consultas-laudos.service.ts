@@ -25,6 +25,10 @@ export class ConsultasLaudosService {
     return this.consultasLaudosRepository.findByAtendimentoId(atendimentoId);
   }
 
+  async findByMedicoId(medicoId: string): Promise<ConsultaLaudoDocument[]> {
+    return this.consultasLaudosRepository.findByMedicoId(medicoId);
+  }
+
   async findAll(): Promise<ConsultaLaudoDocument[]> {
     return this.consultasLaudosRepository.findAll();
   }

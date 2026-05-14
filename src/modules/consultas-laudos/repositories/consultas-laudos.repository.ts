@@ -25,6 +25,10 @@ export class ConsultasLaudosRepository {
     return this.model.find({ atendimentoId }).exec();
   }
 
+  async findByMedicoId(medicoId: string): Promise<ConsultaLaudoDocument[]> {
+    return this.model.find({ medicoId }).exec();
+  }
+
   async findAll(): Promise<ConsultaLaudoDocument[]> {
     return this.model.find().exec();
   }
