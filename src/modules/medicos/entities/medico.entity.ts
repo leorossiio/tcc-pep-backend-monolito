@@ -4,9 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
 } from 'typeorm';
-import { Atendimento } from '../../atendimentos/entities/atendimento.entity';
 
 @Entity('medicos_pg')
 export class Medico {

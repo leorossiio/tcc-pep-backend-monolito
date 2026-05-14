@@ -53,6 +53,15 @@ export class PacientesController {
     return this.pacientesService.update(id, dto);
   }
 
+  @Get(':id/historico-completo')
+  @ApiOperation({ summary: 'Busca visão 360 do paciente (PG + MDB join poliglota)' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Paciente + histórico clínico + atendimentos com laudos' })
+  @ApiResponse({ status: 404, description: 'Paciente não encontrado' })
+  getHistoricoCompleto(@Param('id', ParseUUIDPipe) id: string) {
+    return this.pacientesService.getHistoricoCompleto(id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remover paciente' })
