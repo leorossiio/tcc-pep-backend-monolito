@@ -29,4 +29,9 @@ export class PacientesRepository {
   async remove(id: string): Promise<void> {
     await this.repo.delete(id);
   }
+
+  async findOneById(id: string): Promise<Paciente | null> {
+    return this.repo.findOneBy({ id });
+  }
+
 }
