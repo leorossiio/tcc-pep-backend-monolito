@@ -4,13 +4,19 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { MedicosRepository } from '../repositories/medicos.repository';
+import { AtendimentosService } from '../../atendimentos/services/atendimentos.service';
+import { ConsultasLaudosService } from '../../consultas-laudos/services/consultas-laudos.service';
 import { CreateMedicoDto } from '../dto/create-medico.dto';
 import { UpdateMedicoDto } from '../dto/update-medico.dto';
 import { Medico } from '../entities/medico.entity';
 
 @Injectable()
 export class MedicosService {
-  constructor(private readonly medicosRepository: MedicosRepository) {}
+  constructor(
+    private readonly medicosRepository: MedicosRepository,
+    private readonly atendimentosService: AtendimentosService,
+    private readonly consultasLaudosService: ConsultasLaudosService,
+  ) {}
 
   async create(dto: CreateMedicoDto): Promise<Medico> {
     const existing = await this.medicosRepository.findByCrm(dto.crm);
@@ -64,5 +70,19 @@ export class MedicosService {
   async remove(id: string): Promise<void> {
     await this.findOne(id);
     await this.medicosRepository.remove(id);
+  }
+
+  async getAtendimentos(id: string) {
+    const medico = await this.findOne(id);
+    const atendimentos = await this.atendimentosService.findComLaudosByMedicoId(id);
+    return { medico, atendimentos };
+  }
+
+  async getLaudos(id: string) {
+    const medico = await this.findOne(id);
+    const laudos = await this.consultasLaudosService.findByMedicoId(id);
+    const atendimentoIds = [...new Set(laudos.map((l) => l.atendimentoId))];
+    const atendimentos = await this.atendimentosService.findByIds(atendimentoIds);
+    return { medico, laudos, atendimentos };
   }
 }

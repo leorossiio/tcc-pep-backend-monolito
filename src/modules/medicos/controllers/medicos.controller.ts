@@ -61,6 +61,24 @@ export class MedicosController {
     return this.medicosService.update(id, dto);
   }
 
+  @Get(':id/atendimentos')
+  @ApiOperation({ summary: 'Médico + atendimentos de triagem com laudos (PG → MDB)' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Médico com atendimentos e laudos' })
+  @ApiResponse({ status: 404, description: 'Médico não encontrado' })
+  getAtendimentos(@Param('id', ParseUUIDPipe) id: string) {
+    return this.medicosService.getAtendimentos(id);
+  }
+
+  @Get(':id/laudos')
+  @ApiOperation({ summary: 'Laudos assinados pelo médico + atendimentos relacionados (MDB → PG)' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
+  @ApiResponse({ status: 200, description: 'Laudos MDB + atendimentos PG relacionados' })
+  @ApiResponse({ status: 404, description: 'Médico não encontrado' })
+  getLaudos(@Param('id', ParseUUIDPipe) id: string) {
+    return this.medicosService.getLaudos(id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remover médico' })
