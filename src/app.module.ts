@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MongooseModule } from '@nestjs/mongoose';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { typeOrmConfig } from './config/database/typeorm.config';
@@ -18,6 +19,10 @@ import { ConsultasLaudosModule } from './modules/consultas-laudos/consultas-laud
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: { enabled: true },
     }),
     TypeOrmModule.forRootAsync(typeOrmConfig),
     MongooseModule.forRootAsync(mongooseConfig),
