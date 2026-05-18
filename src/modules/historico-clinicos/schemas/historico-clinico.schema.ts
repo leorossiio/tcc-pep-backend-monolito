@@ -43,7 +43,7 @@ export class HistoricoClinico {
    * Este documento é criado no cadastro do paciente — existe um por paciente (1:1).
    * Diferente de consultas-laudos que é 1:N por atendimento.
    */
-  @Prop({ type: String, required: true, index: true })
+  @Prop({ type: String, required: true })
   pacienteId!: string;
 
   /**
@@ -112,6 +112,13 @@ export class HistoricoClinico {
     required: true,
   })
   metadadosLgpd!: MetadadosLgpd;
+
+  /**
+   * Hash SHA-256 do documento — garante integridade do registro clínico (LGPD).
+   * Calculado sobre os campos clínicos antes da persistência.
+   */
+  @Prop({ type: String, required: true })
+  hashIntegridade!: string;
 }
 
 export const HistoricoClinicoSchema =

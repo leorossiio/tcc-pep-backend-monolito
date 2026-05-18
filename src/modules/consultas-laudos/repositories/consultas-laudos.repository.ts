@@ -14,7 +14,7 @@ export class ConsultasLaudosRepository {
     private readonly model: Model<ConsultaLaudoDocument>,
   ) {}
 
-  async create(dto: CreateConsultaLaudoDto): Promise<ConsultaLaudoDocument> {
+  async create(dto: CreateConsultaLaudoDto & { hashIntegridade: string }): Promise<ConsultaLaudoDocument> {
     const doc = new this.model(dto);
     return doc.save();
   }

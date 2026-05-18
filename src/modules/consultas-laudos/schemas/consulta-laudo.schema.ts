@@ -35,7 +35,7 @@ export class ConsultaLaudo {
    * FK lógica para o UUID do atendimento no PostgreSQL.
    * Vincula este laudo ao atendimento de origem — chave do join poliglota.
    */
-  @Prop({ type: String, required: true, index: true })
+  @Prop({ type: String, required: true })
   atendimentoId!: string;
 
   /**
@@ -61,7 +61,7 @@ export class ConsultaLaudo {
    * Tipo do registro — ex: "CONSULTA", "LAUDO", "EVOLUCAO", "ALTA".
    * Permite filtrar documentos por categoria sem full scan.
    */
-  @Prop({ type: String, required: true, index: true })
+  @Prop({ type: String, required: true })
   tipoRegistro!: string;
 
   /**
@@ -123,6 +123,13 @@ export class ConsultaLaudo {
     default: [],
   })
   novasAlergiasIdentificadas!: NovaAlergia[];
+
+  /**
+   * Hash SHA-256 do documento — garante integridade do laudo/consulta (LGPD).
+   * Calculado sobre os campos clínicos antes da persistência.
+   */
+  @Prop({ type: String, required: true })
+  hashIntegridade!: string;
 }
 
 export const ConsultaLaudoSchema = SchemaFactory.createForClass(ConsultaLaudo);

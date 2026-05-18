@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { createHash } from 'crypto';
+import { hashCpf, encryptNome, decryptNome } from '../../../common/utils/crypto.util';
 import { PacientesRepository } from '../repositories/pacientes.repository';
 import { AtendimentosService } from '../../atendimentos/services/atendimentos.service';
 import { HistoricoClinicosService } from '../../historico-clinicos/services/historico-clinicos.service';
@@ -15,12 +15,17 @@ export class PacientesService {
     private readonly historicoClinicosService: HistoricoClinicosService,
   ) {}
 
-  private hashCpf(cpf: string): string {
-    return createHash('sha256').update(cpf).digest('hex');
+  private decrypt(paciente: Paciente): Paciente {
+    try {
+      paciente.nomeCompleto = decryptNome(paciente.nomeCompleto);
+    } catch {
+      // valor já está em texto plano (dado anterior à criptografia) — retorna como está
+    }
+    return paciente;
   }
 
   async create(dto: CreatePacienteDto): Promise<Paciente> {
-    const cpfHash = this.hashCpf(dto.cpf);
+    const cpfHash = hashCpf(dto.cpf);
 
     const existing = await this.pacientesRepository.findByCpfHash(cpfHash);
     if (existing) {
@@ -28,7 +33,7 @@ export class PacientesService {
     }
 
     const paciente = new Paciente();
-    paciente.nomeCompleto = dto.nomeCompleto;
+    paciente.nomeCompleto = encryptNome(dto.nomeCompleto);
     paciente.sexo = dto.sexo;
     paciente.cpfHash = cpfHash;
     paciente.dataNascimento = new Date(dto.dataNascimento);
@@ -36,11 +41,13 @@ export class PacientesService {
     paciente.tipagemSanguinea = dto.tipagemSanguinea ?? null;
     paciente.consentimentoLgpd = dto.consentimentoLgpd;
 
-    return this.pacientesRepository.save(paciente);
+    const saved = await this.pacientesRepository.save(paciente);
+    return this.decrypt(saved);
   }
 
-  findAll(): Promise<Paciente[]> {
-    return this.pacientesRepository.findAll();
+  async findAll(): Promise<Paciente[]> {
+    const pacientes = await this.pacientesRepository.findAll();
+    return pacientes.map((p) => this.decrypt(p));
   }
 
   async findOne(id: string): Promise<Paciente> {
@@ -48,21 +55,25 @@ export class PacientesService {
     if (!paciente) {
       throw new NotFoundException(`Paciente #${id} não encontrado`);
     }
-    return paciente;
+    return this.decrypt(paciente);
   }
 
   async update(id: string, dto: UpdatePacienteDto): Promise<Paciente> {
-    const paciente = await this.findOne(id);
+    const paciente = await this.pacientesRepository.findOne(id);
+    if (!paciente) {
+      throw new NotFoundException(`Paciente #${id} não encontrado`);
+    }
 
-    if (dto.cpf) paciente.cpfHash = this.hashCpf(dto.cpf);
-    if (dto.nomeCompleto) paciente.nomeCompleto = dto.nomeCompleto;
+    if (dto.cpf) paciente.cpfHash = hashCpf(dto.cpf);
+    if (dto.nomeCompleto) paciente.nomeCompleto = encryptNome(dto.nomeCompleto);
     if (dto.sexo) paciente.sexo = dto.sexo;
     if (dto.dataNascimento) paciente.dataNascimento = new Date(dto.dataNascimento);
     if (dto.telefoneContato !== undefined) paciente.telefoneContato = dto.telefoneContato ?? null;
     if (dto.tipagemSanguinea !== undefined) paciente.tipagemSanguinea = dto.tipagemSanguinea ?? null;
     if (dto.consentimentoLgpd !== undefined) paciente.consentimentoLgpd = dto.consentimentoLgpd;
 
-    return this.pacientesRepository.save(paciente);
+    const saved = await this.pacientesRepository.save(paciente);
+    return this.decrypt(saved);
   }
 
   async remove(id: string): Promise<void> {

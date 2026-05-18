@@ -14,7 +14,7 @@ export class HistoricoClinicosRepository {
     private readonly model: Model<HistoricoClinicoDocument>,
   ) {}
 
-  async create(dto: CreateHistoricoClinicoDto): Promise<HistoricoClinicoDocument> {
+  async create(dto: CreateHistoricoClinicoDto & { hashIntegridade: string }): Promise<HistoricoClinicoDocument> {
     const doc = new this.model(dto);
     return doc.save();
   }

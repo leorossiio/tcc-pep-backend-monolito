@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { HistoricoClinicosRepository } from '../repositories/historico-clinicos.repository';
 import { CreateHistoricoClinicoDto } from '../dto/create-historico-clinico.dto';
 import { HistoricoClinicoDocument } from '../schemas/historico-clinico.schema';
+import { hashDocument } from '../../../common/utils/crypto.util';
 
 @Injectable()
 export class HistoricoClinicosService {
@@ -11,7 +12,8 @@ export class HistoricoClinicosService {
 
   async create(dto: CreateHistoricoClinicoDto): Promise<HistoricoClinicoDocument> {
     try {
-      return await this.historicoClinicosRepository.create(dto);
+      const hashIntegridade = hashDocument(dto as unknown as Record<string, unknown>);
+      return await this.historicoClinicosRepository.create({ ...dto, hashIntegridade });
     } catch (error) {
       throw new InternalServerErrorException(
         'Falha ao criar histórico clínico no MongoDB',
