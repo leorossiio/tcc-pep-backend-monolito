@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check, sleep, fail } from 'k6';
 
 // --- URL base da API ----------------------------------------------------------
-const BASE_URL = 'http://host.docker.internal:3000';
+const BASE_URL = 'http://app-monolito:3000';
 const HEADERS  = { 'Content-Type': 'application/json' };
 
 // --- Op��es do teste ----------------------------------------------------------
