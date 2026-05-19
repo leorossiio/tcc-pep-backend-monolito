@@ -1,6 +1,33 @@
 version: '3.8'
 
 services:
+  app-monolito:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_nestjs_monolito
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - POSTGRES_HOST=postgres-pep
+      - POSTGRES_PORT=5432
+      - MONGO_HOST=mongo-pep
+      - MONGO_PORT=27017
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres-pep
+      - mongo-pep
+    networks:
+      - pep_network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
   postgres-pep:
     image: postgres:15-alpine
     container_name: db_postgres_monolito
@@ -15,10 +42,14 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # MIGRAÇÃO: script SQL executado na primeira inicialização
       - ./migrations/postgres:/docker-entrypoint-initdb.d
     networks:
       - pep_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
 
   mongo-pep:
     image: mongo:6.0
@@ -34,12 +65,14 @@ services:
       - "${MONGO_PORT}:27017"
     volumes:
       - mongo_data:/data/db
-      # MIGRAÇÃO: script JavaScript executado na primeira inicialização
       - ./migrations/mongo:/docker-entrypoint-initdb.d
     networks:
       - pep_network
-
-  # --- INFRAESTRUTURA DE TESTES DE ESTRESSE ---
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
 
   prometheus:
     image: prom/prometheus:latest
@@ -82,7 +115,6 @@ services:
       - ./k6-scripts:/scripts
     networks:
       - pep_network
-    # Executado manualmente: docker-compose run k6 run /scripts/meu-teste.js
 
 volumes:
   postgres_data:
