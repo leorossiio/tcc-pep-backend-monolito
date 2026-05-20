@@ -11,7 +11,7 @@ CREATE TYPE RiscoManchester AS ENUM ('VERMELHO', 'LARANJA', 'AMARELO', 'VERDE', 
 CREATE TABLE IF NOT EXISTS PACIENTES_PG (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome_completo VARCHAR NOT NULL,  -- Criptografado AES-256-GCM na aplicação
-    sexo VARCHAR NOT NULL CHECK (sexo IN ('Masculino', 'Feminino', 'Outro')),
+    sexo VARCHAR NOT NULL CHECK (sexo IN ('M', 'F', 'Outro')), -- Ajustado para M/F/Outro conforme DBML
     cpf_hash VARCHAR UNIQUE NOT NULL,  -- HMAC-SHA256 do CPF
     data_nascimento DATE NOT NULL,
     telefone_contato VARCHAR,
@@ -49,10 +49,13 @@ CREATE TABLE IF NOT EXISTS ATENDIMENTOS_PG (
 -- Tabela LOGS_AUDITORIA_PG
 CREATE TABLE IF NOT EXISTS LOGS_AUDITORIA_PG (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    atendimento_id UUID NOT NULL REFERENCES ATENDIMENTOS_PG(id) ON DELETE CASCADE,
+    atendimento_id UUID REFERENCES ATENDIMENTOS_PG(id) ON DELETE SET NULL, -- Passou a ser NULLable
     acao_realizada VARCHAR NOT NULL,
     data_hora TIMESTAMP NOT NULL DEFAULT NOW(),
-    ip_origem VARCHAR
+    ip_origem VARCHAR,
+    entidade_afetada VARCHAR NOT NULL,  -- Nova coluna
+    entidade_id VARCHAR,                -- Nova coluna (UUID ou ObjectId)
+    usuario_responsavel VARCHAR         -- Nova coluna (medicoId, userId ou sistema)
 );
 
 -- Índices para desempenho
@@ -74,3 +77,6 @@ CREATE INDEX IF NOT EXISTS idx_logs_data_hora ON LOGS_AUDITORIA_PG(data_hora);
 COMMENT ON COLUMN PACIENTES_PG.nome_completo IS 'Criptografado AES-256-GCM na aplicação';
 COMMENT ON COLUMN PACIENTES_PG.cpf_hash IS 'HMAC-SHA256 do CPF – não armazena CPF em texto puro';
 COMMENT ON COLUMN PACIENTES_PG.consentimento_lgpd IS 'Registro de consentimento para tratamento de dados LGPD';
+COMMENT ON COLUMN LOGS_AUDITORIA_PG.entidade_afetada IS 'Ex: Atendimento | ConsultaLaudo | Paciente';
+COMMENT ON COLUMN LOGS_AUDITORIA_PG.entidade_id IS 'UUID ou ObjectId do registro afetado';
+COMMENT ON COLUMN LOGS_AUDITORIA_PG.usuario_responsavel IS 'medicoId, userId ou sistema';
