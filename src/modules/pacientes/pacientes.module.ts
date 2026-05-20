@@ -6,12 +6,14 @@ import { PacientesService } from './services/pacientes.service';
 import { PacientesRepository } from './repositories/pacientes.repository';
 import { AtendimentosModule } from '../atendimentos/atendimentos.module';
 import { HistoricoClinicosModule } from '../historico-clinicos/historico-clinicos.module';
+import { LogsAuditoriaModule } from '../logs-auditoria/logs-auditoria.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Paciente]),
     AtendimentosModule,
     HistoricoClinicosModule,
+    LogsAuditoriaModule,
   ],
   controllers: [PacientesController],
   providers: [PacientesService, PacientesRepository],

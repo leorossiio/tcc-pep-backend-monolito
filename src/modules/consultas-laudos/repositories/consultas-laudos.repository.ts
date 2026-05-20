@@ -29,11 +29,19 @@ export class ConsultasLaudosRepository {
     return this.model.find({ medicoId }).exec();
   }
 
+  async findByPacienteId(pacienteId: string): Promise<ConsultaLaudoDocument[]> {
+    return this.model.find({ pacienteId }).exec();
+  }
+
   async findAll(): Promise<ConsultaLaudoDocument[]> {
     return this.model.find().exec();
   }
 
   async removeByAtendimentoId(atendimentoId: string): Promise<void> {
     await this.model.deleteMany({ atendimentoId }).exec();
+  }
+
+  async removeByPacienteId(pacienteId: string): Promise<void> {
+    await this.model.deleteMany({ pacienteId }).exec();
   }
 }

@@ -6,18 +6,17 @@ import { AtendimentosService } from './services/atendimentos.service';
 import { AtendimentosRepository } from './repositories/atendimentos.repository';
 import { ConsultasLaudosModule } from '../consultas-laudos/consultas-laudos.module';
 import { HistoricoClinicosModule } from '../historico-clinicos/historico-clinicos.module';
+import { LogsAuditoriaModule } from '../logs-auditoria/logs-auditoria.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Atendimento]),
     ConsultasLaudosModule,
     HistoricoClinicosModule,
+    LogsAuditoriaModule,
   ],
   controllers: [AtendimentosController],
-  providers: [
-    AtendimentosService,
-    AtendimentosRepository,
-  ],
+  providers: [AtendimentosService, AtendimentosRepository],
   exports: [AtendimentosService],
 })
 export class AtendimentosModule {}

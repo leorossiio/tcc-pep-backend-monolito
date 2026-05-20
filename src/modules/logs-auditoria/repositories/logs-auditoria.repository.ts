@@ -11,7 +11,7 @@ export class LogsAuditoriaRepository {
   ) {}
 
   findAll(): Promise<LogAuditoria[]> {
-    return this.repo.find();
+    return this.repo.find({ order: { dataHora: 'DESC' } });
   }
 
   findOne(id: string): Promise<LogAuditoria | null> {
@@ -19,14 +19,20 @@ export class LogsAuditoriaRepository {
   }
 
   findByAtendimentoId(atendimentoId: string): Promise<LogAuditoria[]> {
-    return this.repo.findBy({ atendimentoId });
+    return this.repo.find({
+      where: { atendimentoId },
+      order: { dataHora: 'DESC' },
+    });
+  }
+
+  findByEntidade(entidadeAfetada: string, entidadeId: string): Promise<LogAuditoria[]> {
+    return this.repo.find({
+      where: { entidadeAfetada, entidadeId },
+      order: { dataHora: 'DESC' },
+    });
   }
 
   save(log: LogAuditoria): Promise<LogAuditoria> {
     return this.repo.save(log);
-  }
-
-  async remove(id: string): Promise<void> {
-    await this.repo.delete(id);
   }
 }

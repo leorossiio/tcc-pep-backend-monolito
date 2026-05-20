@@ -1,34 +1,25 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Delete,
-  HttpCode,
-  HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { LogsAuditoriaService } from '../services/logs-auditoria.service';
-import { CreateLogAuditoriaDto } from '../dto/create-log-auditoria.dto';
-import { UpdateLogAuditoriaDto } from '../dto/update-log-auditoria.dto';
 
+/**
+ * LogsAuditoriaController — SOMENTE LEITURA.
+ *
+ * Logs são gerados automaticamente pelas services do sistema.
+ * Nenhum endpoint de escrita (POST / PATCH / DELETE) é exposto.
+ */
 @ApiTags('Logs de Auditoria')
 @Controller('logs-auditoria')
 export class LogsAuditoriaController {
   constructor(private readonly logsAuditoriaService: LogsAuditoriaService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Registrar novo log de auditoria' })
-  @ApiResponse({ status: 201, description: 'Log criado com sucesso' })
-  create(@Body() dto: CreateLogAuditoriaDto) {
-    return this.logsAuditoriaService.create(dto);
-  }
-
   @Get()
-  @ApiOperation({ summary: 'Listar todos os logs de auditoria' })
+  @ApiOperation({ summary: 'Listar todos os logs de auditoria (gerados automaticamente)' })
   @ApiResponse({ status: 200, description: 'Lista de logs de auditoria' })
   findAll() {
     return this.logsAuditoriaService.findAll();
@@ -44,29 +35,22 @@ export class LogsAuditoriaController {
   }
 
   @Get('atendimento/:atendimentoId')
-  @ApiOperation({ summary: 'Listar logs de auditoria por atendimento' })
+  @ApiOperation({ summary: 'Listar logs de auditoria de um atendimento' })
   @ApiParam({ name: 'atendimentoId', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Logs do atendimento' })
   findByAtendimento(@Param('atendimentoId', ParseUUIDPipe) atendimentoId: string) {
     return this.logsAuditoriaService.findByAtendimento(atendimentoId);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Atualizar log de auditoria' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 200, description: 'Log atualizado' })
-  @ApiResponse({ status: 404, description: 'Log não encontrado' })
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateLogAuditoriaDto) {
-    return this.logsAuditoriaService.update(id, dto);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Remover log de auditoria' })
-  @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
-  @ApiResponse({ status: 204, description: 'Log removido' })
-  @ApiResponse({ status: 404, description: 'Log não encontrado' })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.logsAuditoriaService.remove(id);
+  @Get('entidade/:entidade/:entidadeId')
+  @ApiOperation({ summary: 'Listar logs por entidade e ID (ex: ConsultaLaudo / uuid)' })
+  @ApiParam({ name: 'entidade', type: 'string', example: 'ConsultaLaudo' })
+  @ApiParam({ name: 'entidadeId', type: 'string' })
+  @ApiResponse({ status: 200, description: 'Logs da entidade' })
+  findByEntidade(
+    @Param('entidade') entidade: string,
+    @Param('entidadeId') entidadeId: string,
+  ) {
+    return this.logsAuditoriaService.findByEntidade(entidade, entidadeId);
   }
 }
