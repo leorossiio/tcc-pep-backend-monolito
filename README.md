@@ -26,7 +26,7 @@ Este protótipo implementa uma **aplicação monolítica centralizada** que se c
 ### **Modelo de Dados**
 ```
 ┌─────────────────────────────────────────────┐
-│   NestJS Monolith (Node.js + TypeScript)    │
+│   NestJS monolito (Node.js + TypeScript)    │
 ├─────────────────────────────────────────────┤
 │                                             │
 │  ├─ Atendimentos (Triagem)                  │
