@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { PacientesService } from '../services/pacientes.service';
@@ -24,8 +25,8 @@ export class PacientesController {
   @ApiOperation({ summary: 'Cadastrar novo paciente' })
   @ApiResponse({ status: 201, description: 'Paciente criado com sucesso' })
   @ApiResponse({ status: 409, description: 'CPF já cadastrado' })
-  create(@Body() dto: CreatePacienteDto) {
-    return this.pacientesService.create(dto);
+  create(@Body() dto: CreatePacienteDto, @Req() req: any) {
+    return this.pacientesService.create(dto, req);
   }
 
   @Get()
@@ -49,12 +50,16 @@ export class PacientesController {
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Paciente atualizado' })
   @ApiResponse({ status: 404, description: 'Paciente não encontrado' })
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePacienteDto) {
-    return this.pacientesService.update(id, dto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePacienteDto,
+    @Req() req: any,
+  ) {
+    return this.pacientesService.update(id, dto, req);
   }
 
   @Get(':id/historico-completo')
-  @ApiOperation({ summary: 'Busca visão 360 do paciente (PG + MDB join poliglota)' })
+  @ApiOperation({ summary: 'Visão 360° do paciente (PG + MDB — join poliglota)' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Paciente + histórico clínico + atendimentos com laudos' })
   @ApiResponse({ status: 404, description: 'Paciente não encontrado' })
@@ -68,8 +73,7 @@ export class PacientesController {
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 204, description: 'Paciente removido' })
   @ApiResponse({ status: 404, description: 'Paciente não encontrado' })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.pacientesService.remove(id);
+  remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
+    return this.pacientesService.remove(id, req);
   }
 }
-
