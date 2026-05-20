@@ -722,12 +722,6 @@ Uso de múltiplos bancos de dados especializados em uma única aplicação, esco
 
 ---
 
-## 📞 Contato e Suporte
-
-Para dúvidas ou contribuições, abra uma **Issue** no repositório ou entre em contato com os autores.
-
----
-
 ## 📜 Licença
 
 Este projeto é parte do TCC de Engenharia da Computação no UniFacens - 2026.
