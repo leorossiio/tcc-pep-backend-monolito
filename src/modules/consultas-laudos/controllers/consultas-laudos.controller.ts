@@ -46,4 +46,14 @@ export class ConsultasLaudosController {
   findByAtendimentoId(@Param('atendimentoId') atendimentoId: string) {
     return this.consultasLaudosService.findByAtendimentoId(atendimentoId);
   }
+
+  @Get('paciente/:pacienteId')
+  @ApiOperation({ summary: 'Busca todas as consultas/laudos de um paciente (MongoDB)' })
+  @ApiParam({
+    name: 'pacienteId',
+    description: 'UUID do paciente no PostgreSQL',
+  })
+  findByPacienteId(@Param('pacienteId') pacienteId: string) {
+    return this.consultasLaudosService.findByPacienteId(pacienteId);
+  }
 }

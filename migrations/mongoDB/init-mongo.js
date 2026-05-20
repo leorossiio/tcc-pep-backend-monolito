@@ -145,6 +145,7 @@ db.createCollection('consultas_laudos', {
 
 // Índices - consultas_laudos
 db.consultas_laudos.createIndex({ atendimento_id: 1 }); // Removido o unique (1:N)
+db.consultas_laudos.createIndex({ paciente_id: 1 }); // Otimiza buscas por paciente e exclusão LGPD
 db.consultas_laudos.createIndex({ tipo_registro: 1 });
 db.consultas_laudos.createIndex({ medico_id: 1, data_registro: -1 });
 

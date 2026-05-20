@@ -82,6 +82,10 @@ export class ConsultasLaudosService {
     return this.consultasLaudosRepository.findByMedicoId(medicoId);
   }
 
+  async findByPacienteId(pacienteId: string): Promise<ConsultaLaudoDocument[]> {
+    return this.consultasLaudosRepository.findByPacienteId(pacienteId);
+  }
+
   async findAll(): Promise<ConsultaLaudoDocument[]> {
     return this.consultasLaudosRepository.findAll();
   }
