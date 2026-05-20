@@ -7,17 +7,19 @@ import {
 import { ConsultasLaudosRepository } from './repositories/consultas-laudos.repository';
 import { ConsultasLaudosService } from './services/consultas-laudos.service';
 import { ConsultasLaudosController } from './controllers/consultas-laudos.controller';
+import { HistoricoClinicosModule } from '../historico-clinicos/historico-clinicos.module';
+import { LogsAuditoriaModule } from '../logs-auditoria/logs-auditoria.module';
 
 @Module({
   imports: [
-    // Registra o schema Mongoose para que o @InjectModel funcione no repository
     MongooseModule.forFeature([
       { name: ConsultaLaudo.name, schema: ConsultaLaudoSchema },
     ]),
+    HistoricoClinicosModule,
+    LogsAuditoriaModule,
   ],
   controllers: [ConsultasLaudosController],
   providers: [ConsultasLaudosService, ConsultasLaudosRepository],
-  // Exporta o service para ser injetado no AtendimentosModule (dual-write + join poliglota)
   exports: [ConsultasLaudosService],
 })
 export class ConsultasLaudosModule {}
