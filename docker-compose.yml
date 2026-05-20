@@ -4,7 +4,7 @@ services:
   app-monolito:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     container_name: app_nestjs_monolito
     restart: always
     env_file:
