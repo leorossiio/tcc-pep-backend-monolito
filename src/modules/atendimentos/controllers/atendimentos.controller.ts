@@ -10,7 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AtendimentosService } from '../services/atendimentos.service';
 import { CreateAtendimentoDto } from '../dto/create-atendimento.dto';
 import { UpdateAtendimentoDto } from '../dto/update-atendimento.dto';
@@ -53,6 +53,8 @@ export class AtendimentosController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Remove um atendimento pelo UUID' })
+  @ApiResponse({ status: 204, description: 'Atendimento removido com sucesso' })
+  @ApiResponse({ status: 404, description: 'Atendimento não encontrado' })
   @ApiParam({ name: 'id', description: 'UUID do atendimento' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.atendimentosService.remove(id);
