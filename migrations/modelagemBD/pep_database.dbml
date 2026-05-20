@@ -1,0 +1,133 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PEP — Prontuário Eletrônico do Paciente
+// Arquitetura Poliglota: PostgreSQL (relacional) + MongoDB (documental)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ══════════════════════════════════════════
+// POSTGRESQL
+// ══════════════════════════════════════════
+
+Enum RiscoManchester {
+  VERMELHO  [note: 'Imediato']
+  LARANJA   [note: 'Muito urgente']
+  AMARELO   [note: 'Urgente']
+  VERDE     [note: 'Pouco urgente']
+  AZUL      [note: 'Não urgente']
+}
+
+Table PACIENTES_PG {
+  id                 uuid      [pk, not null, default: `gen_random_uuid()`]
+  nome_completo      varchar   [not null, note: 'Criptografado AES-256-GCM']
+  sexo               varchar   [not null, note: 'Enum: M | F | Outro']
+  cpf_hash           varchar   [unique, not null, note: 'HMAC-SHA256 do CPF — nunca armazenado em texto plano']
+  data_nascimento    date      [not null]
+  telefone_contato   varchar   [null]
+  tipagem_sanguinea  varchar   [null]
+  consentimento_lgpd boolean   [not null, default: false]
+  criado_em          timestamp [not null, default: `now()`]
+}
+
+Table MEDICOS_PG {
+  id            uuid      [pk, not null, default: `gen_random_uuid()`]
+  nome_completo varchar   [not null]
+  crm           varchar   [unique, not null]
+  especialidade varchar   [not null]
+  ativo         boolean   [not null, default: true]
+  criado_em     timestamp [not null, default: `now()`]
+  atualizado_em timestamp [not null, default: `now()`]
+}
+
+Table ATENDIMENTOS_PG {
+  id                     uuid             [pk, not null, default: `gen_random_uuid()`]
+  paciente_id            uuid             [not null, ref: > PACIENTES_PG.id]
+  medico_triagem_id      uuid             [not null, ref: > MEDICOS_PG.id]
+  data_hora_entrada      timestamp        [not null]
+  queixa_principal       varchar          [not null]
+  pressao_arterial       varchar          [null]
+  frequencia_cardiaca    int              [null, note: 'bpm']
+  saturacao_oxigenio     int              [null, note: '%']
+  temperatura_corporal   decimal(4,1)     [null, note: '°C']
+  frequencia_respiratoria int             [null, note: 'irpm']
+  classificacao_risco    RiscoManchester  [not null]
+}
+
+Table LOGS_AUDITORIA_PG {
+  id                  uuid      [pk, not null, default: `gen_random_uuid()`]
+  atendimento_id      uuid      [null, ref: > ATENDIMENTOS_PG.id, note: 'Nullable — logs de paciente/médico não têm atendimento associado']
+  acao_realizada      varchar   [not null, note: 'Gerado automaticamente pelo sistema — nunca inserção manual']
+  data_hora           timestamp [not null, default: `now()`]
+  ip_origem           varchar   [null]
+  entidade_afetada    varchar   [not null, note: 'Ex: Atendimento | ConsultaLaudo | Paciente']
+  entidade_id         varchar   [null, note: 'UUID ou ObjectId do registro afetado']
+  usuario_responsavel varchar   [null, note: 'medicoId, userId ou sistema']
+}
+
+// ══════════════════════════════════════════
+// MONGODB
+// ══════════════════════════════════════════
+
+Table HISTORICO_CLINICOS_MDB {
+  id                           varchar  [pk, not null, note: 'MongoDB ObjectId']
+  paciente_id                  uuid     [unique, not null, note: 'FK lógica → PACIENTES_PG.id — índice único (1:1)']
+  alergias_conhecidas          json     [null, note: 'Array de { substancia, severidade: leve|moderada|grave, reacao? } — alimentado via $push a cada consulta']
+  comorbidades_previas         json     [null, note: 'Array de { descricao, cid10?, dataDiagnostico?, ativa }']
+  tipos_sanguineos_incompativeis json   [null, note: 'Array de { tipo, motivo? }']
+  metadados_lgpd               json     [not null, note: '{ consentimentoColetado, dataConsentimento?, finalidadeTratamento, responsavelTratamento, anonimizado, dataExclusaoSolicitada? }']
+  hash_integridade             varchar  [not null, note: 'SHA-256 do documento — integridade LGPD']
+  criado_em                    timestamp [not null]
+  atualizado_em                timestamp [not null]
+}
+
+Table CONSULTAS_LAUDOS_MDB {
+  id                          varchar  [pk, not null, note: 'MongoDB ObjectId']
+  atendimento_id              uuid     [not null, note: 'FK lógica → ATENDIMENTOS_PG.id — chave do join poliglota']
+  historico_id                varchar  [not null, note: 'FK lógica → HISTORICO_CLINICOS_MDB._id']
+  paciente_id                 uuid     [not null, note: 'FK lógica → PACIENTES_PG.id — necessário para $push de alergias no histórico']
+  medico_id                   uuid     [not null, note: 'FK lógica → MEDICOS_PG.id']
+  data_registro               timestamp [not null]
+  tipo_registro               varchar  [not null, note: 'TRIAGEM | CONSULTA | EVOLUCAO | LAUDO | PRESCRICAO | ALTA — TRIAGEM criada automaticamente na triagem']
+  descricao_clinica           text     [not null]
+  prescricoes                 json     [null, note: 'Array de { medicamento, dose, frequencia, duracao? }']
+  exames_anexos               json     [null, note: 'Array de { tipo, descricao?, urlAnexo?, dataRealizacao? }']
+  novas_alergias_identificadas json    [null, note: 'Array de { substancia, severidade, reacao? } — propagado automaticamente ao HISTORICO_CLINICOS_MDB via $push']
+  hash_integridade            varchar  [not null, note: 'SHA-256 do documento — integridade LGPD']
+  criado_em                   timestamp [not null]
+  atualizado_em               timestamp [not null]
+}
+
+// ══════════════════════════════════════════
+// ÍNDICES MONGODB (documentados como referência)
+// ══════════════════════════════════════════
+
+// HISTORICO_CLINICOS_MDB
+//   { paciente_id: 1 }                          unique — relação 1:1 com paciente
+//   { alergias_conhecidas.severidade: 1 }       busca por alergias graves em emergências
+//   { metadados_lgpd.dataExclusaoSolicitada: 1 } auditoria LGPD
+
+// CONSULTAS_LAUDOS_MDB
+//   { atendimento_id: 1 }           busca de todos os laudos de um atendimento (1:N)
+//   { tipo_registro: 1 }            filtro por categoria
+//   { medico_id: 1, data_registro: -1 } relatórios analíticos por médico
+
+// ══════════════════════════════════════════
+// FLUXO DE DADOS (referência)
+// ══════════════════════════════════════════
+
+// POST /atendimentos (triagem)
+//   → ATENDIMENTOS_PG (INSERT)
+//   → HISTORICO_CLINICOS_MDB (INSERT se 1º atendimento / idempotente)
+//   → CONSULTAS_LAUDOS_MDB (INSERT tipo=TRIAGEM)
+//   → LOGS_AUDITORIA_PG (INSERT automático)
+
+// POST /consultas-laudos (médico)
+//   → CONSULTAS_LAUDOS_MDB (INSERT)
+//   → HISTORICO_CLINICOS_MDB.alergias_conhecidas ($push se novas alergias via paciente_id)
+//   → LOGS_AUDITORIA_PG (INSERT automático)
+
+// PATCH /atendimentos/:id
+//   → ATENDIMENTOS_PG (UPDATE)
+//   → LOGS_AUDITORIA_PG (INSERT automático)
+
+// DELETE /atendimentos/:id
+//   → ATENDIMENTOS_PG (DELETE)
+//   → LOGS_AUDITORIA_PG (INSERT automático)

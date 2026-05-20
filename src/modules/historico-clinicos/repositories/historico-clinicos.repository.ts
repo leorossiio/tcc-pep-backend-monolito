@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import {
   HistoricoClinico,
   HistoricoClinicoDocument,
+  Alergia,
 } from '../schemas/historico-clinico.schema';
 import { CreateHistoricoClinicoDto } from '../dto/create-historico-clinico.dto';
 
@@ -14,7 +15,9 @@ export class HistoricoClinicosRepository {
     private readonly model: Model<HistoricoClinicoDocument>,
   ) {}
 
-  async create(dto: CreateHistoricoClinicoDto & { hashIntegridade: string }): Promise<HistoricoClinicoDocument> {
+  async create(
+    dto: CreateHistoricoClinicoDto & { hashIntegridade: string },
+  ): Promise<HistoricoClinicoDocument> {
     const doc = new this.model(dto);
     return doc.save();
   }
@@ -31,5 +34,22 @@ export class HistoricoClinicosRepository {
 
   async removeByPacienteId(pacienteId: string): Promise<void> {
     await this.model.deleteOne({ pacienteId }).exec();
+  }
+
+  /**
+   * Adiciona novas alergias ao histórico existente do paciente (upsert incremental).
+   * Chamado automaticamente quando uma consulta identifica novas alergias.
+   */
+  async adicionarAlergias(
+    pacienteId: string,
+    novasAlergias: Alergia[],
+  ): Promise<HistoricoClinicoDocument | null> {
+    return this.model
+      .findOneAndUpdate(
+        { pacienteId },
+        { $push: { alergiasConhecidas: { $each: novasAlergias } } },
+        { new: true },
+      )
+      .exec();
   }
 }
