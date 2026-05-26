@@ -1,3 +1,4 @@
+# Para rodar em Windows: .\run-k6.ps1
 Write-Host ""
 Write-Host "========================================"
 Write-Host "   PEP - K6 Load Test Runner"
