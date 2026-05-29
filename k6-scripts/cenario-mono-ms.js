@@ -1,7 +1,7 @@
 ﻿import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-const MONO = __ENV.MONO_URL || 'http://api_pep:3000';
+const MONO = __ENV.MONO_URL || 'http://app_nestjs_monolito:3000';
 const MS_MEDICOS      = 'http://ms_medicos:3001';
 const MS_PACIENTES    = 'http://ms_pacientes:3002';
 const MS_ATENDIMENTOS = 'http://ms_atendimentos:3003';
