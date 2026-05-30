@@ -17,12 +17,12 @@ export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
     password: configService.get<string>('POSTGRES_PASSWORD', 'rootpassword'),
     database: configService.get<string>('POSTGRES_DB', 'pep_relacional'),
     autoLoadEntities: true,
-    // synchronize: true cria/atualiza tabelas automaticamente a partir das entities
-    // Adequado para desenvolvimento; trocar por false + migrations em produção
     synchronize: true,
     migrationsRun: false,
     migrations: [join(__dirname, '../../migrations/**/*{.ts,.js}')],
-    // Logging de queries SQL (útil para debug e benchmarks)
     logging: configService.get<string>('NODE_ENV') === 'development',
+    extra: {
+      max: 20,
+    },
   }),
 };

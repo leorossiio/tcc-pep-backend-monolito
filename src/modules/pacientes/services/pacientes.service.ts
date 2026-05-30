@@ -62,7 +62,7 @@ export class PacientesService {
 
     const saved = await this.pacientesRepository.save(paciente);
 
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: 'Paciente cadastrado no sistema',
       ipOrigem: this.extractIp(req),
@@ -104,7 +104,7 @@ export class PacientesService {
     const saved = await this.pacientesRepository.save(paciente);
 
     const campos = Object.keys(dto).join(', ');
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: `Dados do paciente atualizados — campos: ${campos}`,
       ipOrigem: this.extractIp(req),
@@ -120,7 +120,7 @@ export class PacientesService {
     await this.findOne(id);
     await this.pacientesRepository.remove(id);
 
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: 'Paciente removido do sistema',
       ipOrigem: this.extractIp(req),

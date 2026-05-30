@@ -59,8 +59,8 @@ export class ConsultasLaudosService {
       );
     }
 
-    // 3. Auditoria automática
-    await this.logsAuditoriaService.registrar({
+    // 3. Auditoria automática (fire-and-forget — não bloqueia o response)
+    this.logsAuditoriaService.registrar({
       atendimentoId: dto.atendimentoId,
       acaoRealizada: `${dto.tipoRegistro} registrado pelo médico ${dto.medicoId}`,
       ipOrigem: this.extractIp(req),

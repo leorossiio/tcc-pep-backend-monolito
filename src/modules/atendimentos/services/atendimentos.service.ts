@@ -80,8 +80,8 @@ export class AtendimentosService {
       );
     }
 
-    // 4. Auditoria automática
-    await this.logsAuditoriaService.registrar({
+    // 4. Auditoria automática (fire-and-forget — não bloqueia o response)
+    this.logsAuditoriaService.registrar({
       atendimentoId: atendimentoSalvo.id,
       acaoRealizada: `Triagem criada — risco ${dto.classificacaoRisco} — queixa: ${dto.queixaPrincipal}`,
       ipOrigem: this.extractIp(req),
@@ -121,12 +121,13 @@ export class AtendimentosService {
 
   /** Join poliglota: atendimento (PG) + consultas/laudos (MDB) */
   async findOne(id: string) {
-    const atendimento = await this.atendimentosRepository.findOneById(id);
+    const [atendimento, consultasLaudos] = await Promise.all([
+      this.atendimentosRepository.findOneById(id),
+      this.consultasLaudosService.findByAtendimentoId(id),
+    ]);
     if (!atendimento) {
       throw new NotFoundException(`Atendimento com ID "${id}" não encontrado`);
     }
-    const consultasLaudos =
-      await this.consultasLaudosService.findByAtendimentoId(id);
     return { ...atendimento, consultasLaudos };
   }
 
@@ -140,7 +141,7 @@ export class AtendimentosService {
     const atualizado = await this.atendimentosRepository.update(id, dto);
 
     const campos = Object.keys(dto).join(', ');
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: id,
       acaoRealizada: `Atendimento atualizado — campos: ${campos}`,
       ipOrigem: this.extractIp(req),
@@ -161,7 +162,7 @@ export class AtendimentosService {
 
     await this.atendimentosRepository.remove(id);
 
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: id,
       acaoRealizada: `Atendimento removido`,
       ipOrigem: this.extractIp(req),

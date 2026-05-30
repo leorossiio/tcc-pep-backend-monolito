@@ -23,6 +23,7 @@ export const mongooseConfig: MongooseModuleAsyncOptions = {
       uri,
       retryWrites: true,
       w: 'majority',
+      maxPoolSize: 20,
       connectionFactory: (connection: any) => {
         if (isDev) {
           connection.set('debug', (collectionName: string, method: string, query: unknown) => {

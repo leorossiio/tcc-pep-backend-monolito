@@ -28,16 +28,11 @@ export class HistoricoClinicosService {
   async criarOuObter(
     dto: CreateHistoricoClinicoDto,
   ): Promise<HistoricoClinicoDocument> {
-    const existente = await this.historicoClinicosRepository.findByPacienteId(
-      dto.pacienteId,
-    );
-    if (existente) return existente;
-
     try {
       const hashIntegridade = hashDocument(
         dto as unknown as Record<string, unknown>,
       );
-      return await this.historicoClinicosRepository.create({
+      return await this.historicoClinicosRepository.upsertByPacienteId({
         ...dto,
         hashIntegridade,
       });

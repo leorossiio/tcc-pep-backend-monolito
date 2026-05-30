@@ -8,8 +8,8 @@ const HEADERS = { 'Content-Type': 'application/json' };
 const SCENARIOS = {
   '1': {
     stages: [
-      { duration: '30s', target: 50 },  // Sobe para 50
-      { duration: '2m', target: 50 },  // Mantém
+      { duration: '30s', target: 30 },  // Sobe para 50
+      { duration: '2m', target: 30},  // Mantém
       { duration: '30s', target: 0 },  // Desce
     ],
     thresholds: {

@@ -44,7 +44,7 @@ export class MedicosService {
 
     const saved = await this.medicosRepository.save(medico);
 
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: 'Médico cadastrado no sistema',
       ipOrigem: this.extractIp(req),
@@ -90,7 +90,7 @@ export class MedicosService {
     const saved = await this.medicosRepository.save(medico);
 
     const campos = Object.keys(dto).join(', ');
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: `Dados do médico atualizados — campos: ${campos}`,
       ipOrigem: this.extractIp(req),
@@ -106,7 +106,7 @@ export class MedicosService {
     await this.findOne(id);
     await this.medicosRepository.remove(id);
 
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: 'Médico removido do sistema',
       ipOrigem: this.extractIp(req),
