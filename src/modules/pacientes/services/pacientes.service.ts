@@ -131,18 +131,13 @@ export class PacientesService {
   }
 
   async getHistoricoCompleto(id: string) {
-    const paciente = await this.findOne(id);
-    const historicoClinico =
-      await this.historicoClinicosService.findByPacienteId(id);
-    const atendimentos = await this.atendimentosService.findByPacienteId(id);
-    const atendimentosComLaudos = await Promise.all(
-      atendimentos.map(async (a) => ({
-        ...a,
-        consultasLaudos: await this.atendimentosService
-          .findOne(a.id)
-          .then((r) => r.consultasLaudos),
-      })),
-    );
-    return { paciente, historicoClinico, atendimentos: atendimentosComLaudos };
+    // As três leituras de topo são independentes — executam em paralelo.
+    // Os laudos vêm agrupados sem N+1 (ver findComLaudosByPacienteId).
+    const [paciente, historicoClinico, atendimentos] = await Promise.all([
+      this.findOne(id),
+      this.historicoClinicosService.findByPacienteId(id),
+      this.atendimentosService.findComLaudosByPacienteId(id),
+    ]);
+    return { paciente, historicoClinico, atendimentos };
   }
 }

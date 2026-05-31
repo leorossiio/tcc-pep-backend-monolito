@@ -119,6 +119,30 @@ export class AtendimentosService {
     return this.atendimentosRepository.findByIds(ids);
   }
 
+  /**
+   * Join poliglota por paciente — sem N+1.
+   * Busca todos os atendimentos (PG) e todos os laudos (MongoDB) do paciente
+   * em apenas duas queries e agrupa os laudos por atendimentoId em memória.
+   */
+  async findComLaudosByPacienteId(pacienteId: string) {
+    const [atendimentos, laudos] = await Promise.all([
+      this.atendimentosRepository.findByPacienteId(pacienteId),
+      this.consultasLaudosService.findByPacienteId(pacienteId),
+    ]);
+
+    const laudosPorAtendimento = new Map<string, typeof laudos>();
+    for (const laudo of laudos) {
+      const existentes = laudosPorAtendimento.get(laudo.atendimentoId) ?? [];
+      existentes.push(laudo);
+      laudosPorAtendimento.set(laudo.atendimentoId, existentes);
+    }
+
+    return atendimentos.map((a) => ({
+      ...a,
+      consultasLaudos: laudosPorAtendimento.get(a.id) ?? [],
+    }));
+  }
+
   /** Join poliglota: atendimento (PG) + consultas/laudos (MDB) */
   async findOne(id: string) {
     const [atendimento, consultasLaudos] = await Promise.all([
