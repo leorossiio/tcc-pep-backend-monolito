@@ -9,8 +9,8 @@ const HEADERS = { 'Content-Type': 'application/json' };
 const SCENARIOS = {
   '1': {
     stages: [
-      { duration: '30s', target: 30 },  // Sobe para 30
-      { duration: '2m', target: 30},  // Mantém
+      { duration: '30s', target: 50 },  // Sobe para 50
+      { duration: '2m', target: 50},  // Mantém
       { duration: '30s', target: 0 },  // Desce
     ],
     thresholds: {
@@ -20,8 +20,8 @@ const SCENARIOS = {
   },
   '2': {
     stages: [
-      { duration: '30s', target: 100 }, // Sobe para 100
-      { duration: '2m', target: 100 }, // Mantém
+      { duration: '30s', target: 150 }, // Sobe para 150
+      { duration: '2m', target: 150 }, // Mantém
       { duration: '30s', target: 0 }, // Desce
     ],
     thresholds: {
@@ -31,8 +31,8 @@ const SCENARIOS = {
   },
   '3': {
     stages: [
-      { duration: '45s', target: 250 }, // Sobe para 250 (um pouco mais de tempo para não gargalar a subida)
-      { duration: '1m30s', target: 250 }, // Mantém
+      { duration: '45s', target: 300 }, // Sobe para 300 (um pouco mais de tempo para não gargalar a subida)
+      { duration: '1m30s', target: 300 }, // Mantém
       { duration: '45s', target: 0 }, // Desce
     ],
     thresholds: {
