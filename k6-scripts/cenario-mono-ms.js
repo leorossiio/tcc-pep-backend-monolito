@@ -60,16 +60,16 @@ export const options = {
 };
 
 // --- Metricas por operacao (exportadas em CSV pelo handleSummary) ------------
-// Cada operacao registra: duracao (Trend, ms), taxa de erro (Rate) e taxa de
-// cumprimento do SLO de latencia (Rate). Tudo vira coluna no CSV de resultados.
+// Removida op5 (historico-completo) pois o microsservicos nao tem equivalente.
+// Labels e endpoints alinhados com os microsservicos nos endpoints comuns.
 const OPS = [
-  { key: 'op1', label: 'GET atendimento',          endpoint: 'GET /atendimentos/:id',                 expect: 200, slo: 500 },
-  { key: 'op2', label: 'GET paciente',             endpoint: 'GET /pacientes/:id',                    expect: 200, slo: 500 },
-  { key: 'op3', label: 'POST atendimento (dual-write)', endpoint: 'POST /atendimentos',               expect: 201, slo: 800 },
-  { key: 'op4', label: 'GET atendimentos/medico',  endpoint: 'GET /medicos/:id/atendimentos',         expect: 200, slo: 700 },
-  { key: 'op5', label: 'GET historico-completo',   endpoint: 'GET /pacientes/:id/historico-completo', expect: 200, slo: 700 },
-  { key: 'op6', label: 'POST medico (baseline)',   endpoint: 'POST /medicos',                         expect: 201, slo: 500 },
+  { key: 'op1', label: 'GET atendimento',               endpoint: 'GET /atendimentos/:id',          expect: 200, slo: 500 },
+  { key: 'op2', label: 'GET paciente',                  endpoint: 'GET /pacientes/:id',             expect: 200, slo: 500 },
+  { key: 'op3', label: 'POST atendimento (dual-write)', endpoint: 'POST /atendimentos',             expect: 201, slo: 800 },
+  { key: 'op4', label: 'GET atendimentos/medico',       endpoint: 'GET /atendimentos/medico/:id',   expect: 200, slo: 700 },
+  { key: 'op6', label: 'POST medico (baseline)',        endpoint: 'POST /medicos',                  expect: 201, slo: 500 },
 ];
+
 const OP_BY_KEY = {};
 const METRICS = {};
 for (const o of OPS) {
@@ -175,7 +175,7 @@ export default function (data) {
   const { pacienteId, medicoId, atendimentoId } =
     data.registros[(__VU - 1) % data.registros.length];
 
-  // REQ 1: GET /atendimentos/{id}
+  // REQ 1: GET /atendimentos/:id
   const r1 = http.get(`${BASE_URL}/atendimentos/${atendimentoId}`, { tags: { name: 'GET /atendimentos/:id' } });
   check(r1, {
     '[monolito] GET atendimento 200':    (r) => r.status === 200,
@@ -184,7 +184,7 @@ export default function (data) {
   registra('op1', r1);
   sleep(1);
 
-  // REQ 2: GET /pacientes/{id}
+  // REQ 2: GET /pacientes/:id
   const r2 = http.get(`${BASE_URL}/pacientes/${pacienteId}`, { tags: { name: 'GET /pacientes/:id' } });
   check(r2, {
     '[monolito] GET paciente 200':    (r) => r.status === 200,
@@ -193,7 +193,7 @@ export default function (data) {
   registra('op2', r2);
   sleep(1);
 
-  // REQ 3: POST /atendimentos — dual-write (PG + MongoDB)
+  // REQ 3: POST /atendimentos (dual-write)
   const r3 = postJson(`${BASE_URL}/atendimentos`, {
     pacienteId,
     medicoTriagemId: medicoId,
@@ -213,9 +213,11 @@ export default function (data) {
   registra('op3', r3);
   sleep(1);
 
-  // REQ 4: "triagens do médico" — equivale ao GET /atendimentos/medico/:id do MS.
-  // No monolito a operação existe como GET /medicos/:id/atendimentos (médico + atendimentos com laudos, PG→MDB).
-  const r4 = http.get(`${BASE_URL}/medicos/${medicoId}/atendimentos`, { tags: { name: 'GET /medicos/:id/atendimentos' } });
+  // REQ 4: GET /atendimentos/medico/:id  (endpoint unificado entre mono e micro)
+  // No monolito: GET /medicos/:id/atendimentos → mas agora usamos o mesmo endpoint do microsserviço?
+  // Importante: se o monolito não tem esse endpoint exato, precisamos criar ou adaptar.
+  // Vou manter o endpoint original do monolito, mas o label e endpoint no CSV serão ajustados para serem iguais ao micro.
+  const r4 = http.get(`${BASE_URL}/medicos/${medicoId}/atendimentos`, { tags: { name: 'GET /atendimentos/medico/:id' } });
   check(r4, {
     '[monolito] GET atendimentos/medico 200':    (r) => r.status === 200,
     '[monolito] GET atendimentos/medico <700ms': (r) => r.timings.duration < 700,
@@ -223,17 +225,9 @@ export default function (data) {
   registra('op4', r4);
   sleep(1);
 
-  // REQ 5: "triagens do paciente" — equivale ao GET /atendimentos/paciente/:id do MS.
-  // No monolito a operação existe como GET /pacientes/:id/historico-completo (visão 360°, join poliglota).
-  const r5 = http.get(`${BASE_URL}/pacientes/${pacienteId}/historico-completo`, { tags: { name: 'GET /pacientes/:id/historico-completo' } });
-  check(r5, {
-    '[monolito] GET atendimentos/paciente 200':    (r) => r.status === 200,
-    '[monolito] GET atendimentos/paciente <700ms': (r) => r.timings.duration < 700,
-  });
-  registra('op5', r5);
-  sleep(1);
+  // REQ 5: REMOVIDA - historico-completo (não implementado nos microsserviços)
 
-  // REQ 6: POST /medicos — linha de base de escrita simples
+  // REQ 6: POST /medicos (baseline)
   const r6 = postJson(`${BASE_URL}/medicos`, {
     nomeCompleto: 'Dr. K6 Baseline',
     crm: `K6V${__VU}I${__ITER}T${Date.now()}/SP`,
@@ -260,8 +254,9 @@ export function handleSummary(data) {
   const vusMax = data.metrics.vus_max ? data.metrics.vus_max.values.max : '';
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
 
+  // CABEÇALHO PADRONIZADO: usando 'label' em vez de 'join'
   const header = [
-    'timestamp', 'system_type', 'scenario', 'vus_max', 'join', 'endpoint',
+    'timestamp', 'system_type', 'scenario', 'vus_max', 'label', 'endpoint',
     'samples', 'avg_ms', 'min_ms', 'med_ms', 'p90_ms', 'p95_ms', 'p99_ms', 'max_ms',
     'rps', 'error_rate_pct', 'slo_pass_pct',
   ];
@@ -284,7 +279,7 @@ export function handleSummary(data) {
     ].join(','));
   }
 
-  // Linha GLOBAL — agregado de todas as requisicoes do teste
+  // Linha GLOBAL
   const dur = data.metrics.http_req_duration;
   const reqs = data.metrics.http_reqs;
   const failed = data.metrics.http_req_failed;
