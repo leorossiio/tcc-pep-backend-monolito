@@ -74,6 +74,12 @@ if ($choice -eq "4") {
   Write-Host "(obs: este reset zera apenas o stack do monolito; o stack de microsservicos e separado)" -ForegroundColor Yellow
   Write-Host ""
 
+  # Remove qualquer k6_runner_ms remanescente de uma execucao anterior (ex.: rodada
+  # interrompida com Ctrl+C). Sem isso, o 'docker create' abaixo falha com conflito de
+  # nome e o 'docker start' acaba reiniciando o container ANTIGO — que carrega o SCENARIO
+  # antigo (50 VUs), ignorando o perfil escolhido agora.
+  docker rm -f k6_runner_ms 2>$null | Out-Null
+
   # Cria o container sem iniciar (permite conectar as duas redes antes do start)
   docker create `
     -v "${PWD}/k6-scripts:/scripts" `
@@ -83,6 +89,10 @@ if ($choice -eq "4") {
     -e SCENARIO=$scenario `
     --name k6_runner_ms `
     grafana/k6:latest run --out experimental-prometheus-rw /scripts/cenario-mono-ms.js
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "[erro] Falha ao criar o container k6_runner_ms. Abortando para nao rodar um perfil errado." -ForegroundColor Red
+    exit 1
+  }
 
   # Conecta na rede do MS (container ainda nao iniciado)
   docker network connect tcc-pep-backend-microsservicos_pep_network_ms k6_runner_ms
@@ -91,7 +101,7 @@ if ($choice -eq "4") {
   docker start -a k6_runner_ms
 
   # Limpeza
-  docker rm k6_runner_ms 2>$null
+  docker rm -f k6_runner_ms 2>$null | Out-Null
 
 } else {
   switch ($choice) {

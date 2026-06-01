@@ -10,8 +10,8 @@ const SCENARIO = __ENV.SCENARIO || '1';
 const SCENARIOS = {
   '1': {
     stages: [
-      { duration: '30s', target: 30 },
-      { duration: '2m',  target: 30 },
+      { duration: '30s', target: 50 },
+      { duration: '2m',  target: 50 },
       { duration: '30s', target: 0  },
     ],
     thresholds: {
@@ -22,8 +22,8 @@ const SCENARIOS = {
   },
   '2': {
     stages: [
-      { duration: '30s', target: 100 },
-      { duration: '2m',  target: 100 },
+      { duration: '30s', target: 150 },
+      { duration: '2m',  target: 150 },
       { duration: '30s', target: 0   },
     ],
     thresholds: {
@@ -34,8 +34,8 @@ const SCENARIOS = {
   },
   '3': {
     stages: [
-      { duration: '45s',   target: 250 },
-      { duration: '1m30s', target: 250 },
+      { duration: '45s',   target: 300 },
+      { duration: '1m30s', target: 300 },
       { duration: '45s',   target: 0   },
     ],
     thresholds: {
