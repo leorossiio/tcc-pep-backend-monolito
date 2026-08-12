@@ -61,8 +61,7 @@ export class AtendimentosController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Remove atendimento + gera log automático de remoção' })
-  @ApiOperation({ summary: 'Remove um atendimento pelo UUID' })
-  @ApiResponse({ status: 204, description: 'Atendimento removido com sucesso' })
+  @ApiResponse({ status: 200, description: 'Atendimento removido com sucesso' })
   @ApiResponse({ status: 404, description: 'Atendimento não encontrado' })
   @ApiParam({ name: 'id', description: 'UUID do atendimento' })
   remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: any) {
