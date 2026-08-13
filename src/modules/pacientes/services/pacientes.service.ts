@@ -62,7 +62,7 @@ export class PacientesService {
 
     const saved = await this.pacientesRepository.save(paciente);
 
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: 'Paciente cadastrado no sistema',
       ipOrigem: this.extractIp(req),
@@ -104,7 +104,7 @@ export class PacientesService {
     const saved = await this.pacientesRepository.save(paciente);
 
     const campos = Object.keys(dto).join(', ');
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: `Dados do paciente atualizados — campos: ${campos}`,
       ipOrigem: this.extractIp(req),
@@ -120,7 +120,7 @@ export class PacientesService {
     await this.findOne(id);
     await this.pacientesRepository.remove(id);
 
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: null,
       acaoRealizada: 'Paciente removido do sistema',
       ipOrigem: this.extractIp(req),
@@ -131,18 +131,13 @@ export class PacientesService {
   }
 
   async getHistoricoCompleto(id: string) {
-    const paciente = await this.findOne(id);
-    const historicoClinico =
-      await this.historicoClinicosService.findByPacienteId(id);
-    const atendimentos = await this.atendimentosService.findByPacienteId(id);
-    const atendimentosComLaudos = await Promise.all(
-      atendimentos.map(async (a) => ({
-        ...a,
-        consultasLaudos: await this.atendimentosService
-          .findOne(a.id)
-          .then((r) => r.consultasLaudos),
-      })),
-    );
-    return { paciente, historicoClinico, atendimentos: atendimentosComLaudos };
+    // As três leituras de topo são independentes — executam em paralelo.
+    // Os laudos vêm agrupados sem N+1 (ver findComLaudosByPacienteId).
+    const [paciente, historicoClinico, atendimentos] = await Promise.all([
+      this.findOne(id),
+      this.historicoClinicosService.findByPacienteId(id),
+      this.atendimentosService.findComLaudosByPacienteId(id),
+    ]);
+    return { paciente, historicoClinico, atendimentos };
   }
 }

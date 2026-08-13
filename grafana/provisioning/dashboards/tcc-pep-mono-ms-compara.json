@@ -1,0 +1,230 @@
+{
+  "title": "TCC PEP — Monolito vs Microsserviços (CRUD Stress)",
+  "uid": "tcc-pep-mono-ms",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "timezone": "browser",
+  "tags": ["tcc", "pep", "k6", "benchmarking", "monolito", "ms"],
+  "panels": [
+
+    { "id": 1, "type": "row", "title": "▶ Visão Geral — Monolito vs MS", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "collapsed": false },
+
+    { "id": 2, "title": "VUs Ativos (total)", "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": { "graphMode": "area", "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 100 }, { "color": "red", "value": 350 }] } } },
+      "targets": [{ "datasource": "Prometheus", "expr": "sum(k6_vus{test_scenario=\"mono-ms\"})", "legendFormat": "VUs" }]
+    },
+
+    { "id": 3, "title": "Throughput — Monolito", "type": "stat",
+      "gridPos": { "h": 4, "w": 5, "x": 4, "y": 1 },
+      "options": { "graphMode": "area", "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "fixed", "fixedColor": "#4e73df" } } },
+      "targets": [{ "datasource": "Prometheus", "expr": "sum(rate(k6_http_reqs_total{arquitetura=\"monolito\",test_scenario=\"mono-ms\"}[30s]))", "legendFormat": "Monolito req/s" }]
+    },
+
+    { "id": 4, "title": "Throughput — MS", "type": "stat",
+      "gridPos": { "h": 4, "w": 5, "x": 9, "y": 1 },
+      "options": { "graphMode": "area", "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "reqps", "color": { "mode": "fixed", "fixedColor": "#f6a623" } } },
+      "targets": [{ "datasource": "Prometheus", "expr": "sum(rate(k6_http_reqs_total{arquitetura=\"ms\",test_scenario=\"mono-ms\"}[30s]))", "legendFormat": "MS req/s" }]
+    },
+
+    { "id": 5, "title": "P95 Latência — Monolito", "type": "stat",
+      "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
+      "options": { "graphMode": "area", "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "ms", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 500 }, { "color": "red", "value": 1000 }] } } },
+      "targets": [{ "datasource": "Prometheus", "expr": "avg(k6_http_req_duration_p95{arquitetura=\"monolito\",test_scenario=\"mono-ms\"}) * 1000", "legendFormat": "P95" }]
+    },
+
+    { "id": 6, "title": "P95 Latência — MS", "type": "stat",
+      "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+      "options": { "graphMode": "area", "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "ms", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 500 }, { "color": "red", "value": 1000 }] } } },
+      "targets": [{ "datasource": "Prometheus", "expr": "avg(k6_http_req_duration_p95{arquitetura=\"ms\",test_scenario=\"mono-ms\"}) * 1000", "legendFormat": "P95" }]
+    },
+
+    { "id": 7, "title": "Taxa de Erros — Monolito (%)", "type": "stat",
+      "gridPos": { "h": 4, "w": 12, "x": 0, "y": 5 },
+      "options": { "graphMode": "none", "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }] } } },
+      "targets": [{ "datasource": "Prometheus", "expr": "(avg(k6_http_req_failed_rate{arquitetura=\"monolito\",test_scenario=\"mono-ms\"}) or vector(0)) * 100", "legendFormat": "% Erros" }]
+    },
+
+    { "id": 8, "title": "Taxa de Erros — MS (%)", "type": "stat",
+      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 5 },
+      "options": { "graphMode": "none", "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }] } } },
+      "targets": [{ "datasource": "Prometheus", "expr": "(avg(k6_http_req_failed_rate{arquitetura=\"ms\",test_scenario=\"mono-ms\"}) or vector(0)) * 100", "legendFormat": "% Erros" }]
+    },
+
+    { "id": 9, "type": "row", "title": "▶ Latência Comparada (P95 e P99)", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }, "collapsed": false },
+
+    { "id": 10, "title": "Latência P95 — Monolito vs MS",
+      "type": "timeseries", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "fieldConfig": {
+        "defaults": { "unit": "ms", "custom": { "lineWidth": 2, "fillOpacity": 12 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Monolito" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#4e73df" } }] },
+          { "matcher": { "id": "byName", "options": "MS" },       "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#f6a623" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "avg(k6_http_req_duration_p95{arquitetura=\"monolito\",test_scenario=\"mono-ms\"}) * 1000", "legendFormat": "Monolito" },
+        { "datasource": "Prometheus", "expr": "avg(k6_http_req_duration_p95{arquitetura=\"ms\",test_scenario=\"mono-ms\"}) * 1000",       "legendFormat": "MS" }
+      ]
+    },
+
+    { "id": 11, "title": "Latência P99 — Monolito vs MS",
+      "type": "timeseries", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "fieldConfig": {
+        "defaults": { "unit": "ms", "custom": { "lineWidth": 2, "fillOpacity": 12 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Monolito" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#4e73df" } }] },
+          { "matcher": { "id": "byName", "options": "MS" },       "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#f6a623" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "avg(k6_http_req_duration_p99{arquitetura=\"monolito\",test_scenario=\"mono-ms\"}) * 1000", "legendFormat": "Monolito" },
+        { "datasource": "Prometheus", "expr": "avg(k6_http_req_duration_p99{arquitetura=\"ms\",test_scenario=\"mono-ms\"}) * 1000",       "legendFormat": "MS" }
+      ]
+    },
+
+    { "id": 12, "type": "row", "title": "▶ Throughput e Taxa de Erros", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }, "collapsed": false },
+
+    { "id": 13, "title": "Throughput (req/s) — Monolito vs MS",
+      "type": "timeseries", "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "custom": { "lineWidth": 2, "fillOpacity": 15 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Monolito" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#4e73df" } }] },
+          { "matcher": { "id": "byName", "options": "MS" },       "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#f6a623" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "sum(rate(k6_http_reqs_total{arquitetura=\"monolito\",test_scenario=\"mono-ms\"}[30s]))", "legendFormat": "Monolito" },
+        { "datasource": "Prometheus", "expr": "sum(rate(k6_http_reqs_total{arquitetura=\"ms\",test_scenario=\"mono-ms\"}[30s]))",       "legendFormat": "MS" }
+      ]
+    },
+
+    { "id": 14, "title": "Taxa de Erros (%) — Monolito vs MS",
+      "type": "timeseries", "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "custom": { "lineWidth": 2, "fillOpacity": 15 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Monolito" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#4e73df" } }] },
+          { "matcher": { "id": "byName", "options": "MS" },       "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#f6a623" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "(avg(k6_http_req_failed_rate{arquitetura=\"monolito\",test_scenario=\"mono-ms\"}) or vector(0)) * 100", "legendFormat": "Monolito" },
+        { "datasource": "Prometheus", "expr": "(avg(k6_http_req_failed_rate{arquitetura=\"ms\",test_scenario=\"mono-ms\"}) or vector(0)) * 100",       "legendFormat": "MS" }
+      ]
+    },
+
+    { "id": 15, "type": "row",
+      "title": "🎯 POST /atendimentos — Ponto Crítico (dual-write Monolito vs simples MS)",
+      "description": "Monolito: PG write + MongoDB write (histórico + triagem) + PG log ≈ 3-4 I/Os\nMS: write no atendimento-service (PG) + evento → log-service ≈ 2 I/Os\nEsta é a diferença de arquitetura mais relevante para o TCC.",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 }, "collapsed": false
+    },
+
+    { "id": 16, "title": "P95 — POST /atendimentos — Monolito vs MS",
+      "description": "Monolito: escreve em PG + MongoDB (histórico + triagem) + PG (log) numa única requisição.\nMS: escreve apenas no atendimento-service (PG) e delega log via evento.\nEspera-se que o monolito seja mais lento aqui devido ao overhead do dual-write.",
+      "type": "timeseries", "gridPos": { "h": 9, "w": 16, "x": 0, "y": 28 },
+      "fieldConfig": {
+        "defaults": { "unit": "ms", "custom": { "lineWidth": 3, "fillOpacity": 20 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Monolito (dual-write PG+Mongo)" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#4e73df" } }] },
+          { "matcher": { "id": "byName", "options": "MS (apenas PG)" },                 "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#f6a623" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"POST /atendimentos\",arquitetura=\"monolito\",test_scenario=\"mono-ms\"} * 1000", "legendFormat": "Monolito (dual-write PG+Mongo)" },
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"POST /atendimentos\",arquitetura=\"ms\",test_scenario=\"mono-ms\"} * 1000",       "legendFormat": "MS (apenas PG)" }
+      ]
+    },
+
+    { "id": 17, "title": "Média Latência — POST /atendimentos",
+      "type": "bargauge", "gridPos": { "h": 9, "w": 8, "x": 16, "y": 28 },
+      "options": { "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"] }, "displayMode": "gradient", "showUnfilled": true },
+      "fieldConfig": { "defaults": { "unit": "ms", "min": 0, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 300 }, { "color": "orange", "value": 600 }, { "color": "red", "value": 1000 }] } } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_avg{name=\"POST /atendimentos\",arquitetura=\"monolito\",test_scenario=\"mono-ms\"} * 1000", "legendFormat": "Monolito (dual-write)" },
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_avg{name=\"POST /atendimentos\",arquitetura=\"ms\",test_scenario=\"mono-ms\"} * 1000",       "legendFormat": "MS (simples)" }
+      ]
+    },
+
+    { "id": 18, "type": "row", "title": "▶ Latência P95 por Operação (Monolito vs MS)", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 37 }, "collapsed": false },
+
+    { "id": 19, "title": "GET /medicos — P95",
+      "type": "timeseries", "gridPos": { "h": 7, "w": 12, "x": 0, "y": 38 },
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "lineWidth": 2, "fillOpacity": 8 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"GET /medicos\",arquitetura=\"monolito\",test_scenario=\"mono-ms\"} * 1000", "legendFormat": "Monolito" },
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"GET /medicos\",arquitetura=\"ms\",test_scenario=\"mono-ms\"} * 1000",       "legendFormat": "MS" }
+      ]
+    },
+
+    { "id": 20, "title": "GET /pacientes — P95",
+      "type": "timeseries", "gridPos": { "h": 7, "w": 12, "x": 12, "y": 38 },
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "lineWidth": 2, "fillOpacity": 8 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"GET /pacientes\",arquitetura=\"monolito\",test_scenario=\"mono-ms\"} * 1000", "legendFormat": "Monolito" },
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"GET /pacientes\",arquitetura=\"ms\",test_scenario=\"mono-ms\"} * 1000",       "legendFormat": "MS" }
+      ]
+    },
+
+    { "id": 21, "title": "GET /atendimentos — P95",
+      "type": "timeseries", "gridPos": { "h": 7, "w": 12, "x": 0, "y": 45 },
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "lineWidth": 2, "fillOpacity": 8 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"GET /atendimentos\",arquitetura=\"monolito\",test_scenario=\"mono-ms\"} * 1000", "legendFormat": "Monolito" },
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"GET /atendimentos\",arquitetura=\"ms\",test_scenario=\"mono-ms\"} * 1000",       "legendFormat": "MS" }
+      ]
+    },
+
+    { "id": 22, "title": "GET /logs-auditoria — P95",
+      "type": "timeseries", "gridPos": { "h": 7, "w": 12, "x": 12, "y": 45 },
+      "fieldConfig": { "defaults": { "unit": "ms", "custom": { "lineWidth": 2, "fillOpacity": 8 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"GET /logs-auditoria\",arquitetura=\"monolito\",test_scenario=\"mono-ms\"} * 1000", "legendFormat": "Monolito" },
+        { "datasource": "Prometheus", "expr": "k6_http_req_duration_p95{name=\"GET /logs-auditoria\",arquitetura=\"ms\",test_scenario=\"mono-ms\"} * 1000",       "legendFormat": "MS" }
+      ]
+    },
+
+    { "id": 23, "type": "row", "title": "▶ VUs e Checks por Arquitetura", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 52 }, "collapsed": false },
+
+    { "id": 24, "title": "VUs ao Longo do Tempo",
+      "type": "timeseries", "gridPos": { "h": 7, "w": 8, "x": 0, "y": 53 },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "fixed", "fixedColor": "#9b59b6" }, "custom": { "drawStyle": "bars", "fillOpacity": 60, "lineWidth": 0 } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "datasource": "Prometheus", "expr": "sum(k6_vus{test_scenario=\"mono-ms\"})", "legendFormat": "VUs Total" }]
+    },
+
+    { "id": 25, "title": "Checks — Monolito (% passando)",
+      "type": "timeseries", "gridPos": { "h": 7, "w": 8, "x": 8, "y": 53 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "color": { "mode": "palette-classic" }, "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] }, "tooltip": { "mode": "multi" } },
+      "targets": [{ "datasource": "Prometheus", "expr": "k6_checks_rate{arquitetura=\"monolito\",test_scenario=\"mono-ms\"}", "legendFormat": "{{check}}" }]
+    },
+
+    { "id": 26, "title": "Checks — MS (% passando)",
+      "type": "timeseries", "gridPos": { "h": 7, "w": 8, "x": 16, "y": 53 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "color": { "mode": "palette-classic" }, "custom": { "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] }, "tooltip": { "mode": "multi" } },
+      "targets": [{ "datasource": "Prometheus", "expr": "k6_checks_rate{arquitetura=\"ms\",test_scenario=\"mono-ms\"}", "legendFormat": "{{check}}" }]
+    }
+
+  ]
+}

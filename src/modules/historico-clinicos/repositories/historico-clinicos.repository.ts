@@ -22,6 +22,18 @@ export class HistoricoClinicosRepository {
     return doc.save();
   }
 
+  async upsertByPacienteId(
+    dto: CreateHistoricoClinicoDto & { hashIntegridade: string },
+  ): Promise<HistoricoClinicoDocument> {
+    return this.model
+      .findOneAndUpdate(
+        { pacienteId: dto.pacienteId },
+        { $setOnInsert: dto },
+        { upsert: true, returnDocument: 'after' },
+      )
+      .exec();
+  }
+
   async findByPacienteId(
     pacienteId: string,
   ): Promise<HistoricoClinicoDocument | null> {

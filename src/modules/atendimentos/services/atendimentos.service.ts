@@ -80,8 +80,8 @@ export class AtendimentosService {
       );
     }
 
-    // 4. Auditoria automática
-    await this.logsAuditoriaService.registrar({
+    // 4. Auditoria automática (fire-and-forget — não bloqueia o response)
+    this.logsAuditoriaService.registrar({
       atendimentoId: atendimentoSalvo.id,
       acaoRealizada: `Triagem criada — risco ${dto.classificacaoRisco} — queixa: ${dto.queixaPrincipal}`,
       ipOrigem: this.extractIp(req),
@@ -119,14 +119,39 @@ export class AtendimentosService {
     return this.atendimentosRepository.findByIds(ids);
   }
 
+  /**
+   * Join poliglota por paciente — sem N+1.
+   * Busca todos os atendimentos (PG) e todos os laudos (MongoDB) do paciente
+   * em apenas duas queries e agrupa os laudos por atendimentoId em memória.
+   */
+  async findComLaudosByPacienteId(pacienteId: string) {
+    const [atendimentos, laudos] = await Promise.all([
+      this.atendimentosRepository.findByPacienteId(pacienteId),
+      this.consultasLaudosService.findByPacienteId(pacienteId),
+    ]);
+
+    const laudosPorAtendimento = new Map<string, typeof laudos>();
+    for (const laudo of laudos) {
+      const existentes = laudosPorAtendimento.get(laudo.atendimentoId) ?? [];
+      existentes.push(laudo);
+      laudosPorAtendimento.set(laudo.atendimentoId, existentes);
+    }
+
+    return atendimentos.map((a) => ({
+      ...a,
+      consultasLaudos: laudosPorAtendimento.get(a.id) ?? [],
+    }));
+  }
+
   /** Join poliglota: atendimento (PG) + consultas/laudos (MDB) */
   async findOne(id: string) {
-    const atendimento = await this.atendimentosRepository.findOneById(id);
+    const [atendimento, consultasLaudos] = await Promise.all([
+      this.atendimentosRepository.findOneById(id),
+      this.consultasLaudosService.findByAtendimentoId(id),
+    ]);
     if (!atendimento) {
       throw new NotFoundException(`Atendimento com ID "${id}" não encontrado`);
     }
-    const consultasLaudos =
-      await this.consultasLaudosService.findByAtendimentoId(id);
     return { ...atendimento, consultasLaudos };
   }
 
@@ -140,7 +165,7 @@ export class AtendimentosService {
     const atualizado = await this.atendimentosRepository.update(id, dto);
 
     const campos = Object.keys(dto).join(', ');
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: id,
       acaoRealizada: `Atendimento atualizado — campos: ${campos}`,
       ipOrigem: this.extractIp(req),
@@ -161,7 +186,7 @@ export class AtendimentosService {
 
     await this.atendimentosRepository.remove(id);
 
-    await this.logsAuditoriaService.registrar({
+    this.logsAuditoriaService.registrar({
       atendimentoId: id,
       acaoRealizada: `Atendimento removido`,
       ipOrigem: this.extractIp(req),

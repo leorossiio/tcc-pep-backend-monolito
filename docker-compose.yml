@@ -36,6 +36,12 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+    command: >
+      postgres
+      -c shared_buffers=256MB
+      -c effective_cache_size=768MB
+      -c max_connections=100
+      -c work_mem=4MB
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
@@ -98,6 +104,11 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_LOGIN_COOKIE_NAME=grafana_session_monolito
+      # Permite embutir dashboards via iframe no front (tela de benchmark)
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -106,9 +117,28 @@ services:
     networks:
       - pep_network
 
+  # Fora do benchmark: sobe apenas com `docker compose --profile frontend up -d`
+  # para não consumir o budget de recursos espelhado com o MS (4 CPU / 3G).
+  frontend-pep:
+    profiles: ["frontend"]
+    build:
+      context: ../tcc-pep-frontend
+      dockerfile: Dockerfile
+    container_name: frontend_pep
+    restart: always
+    ports:
+      - "4200:80"
+    depends_on:
+      - app-monolito
+    networks:
+      - pep_network
+
   k6:
     image: grafana/k6:latest
     container_name: k6_pep
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+      - K6_PROMETHEUS_RW_TREND_STATS=p(90),p(95),p(99),avg,min,med,max
     volumes:
       - ./k6-scripts:/scripts
     networks:
