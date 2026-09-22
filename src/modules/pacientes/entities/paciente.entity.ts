@@ -33,5 +33,4 @@ export class Paciente {
 
   @CreateDateColumn({ name: 'criado_em', type: 'timestamp' })
   criadoEm!: Date;
-
 }

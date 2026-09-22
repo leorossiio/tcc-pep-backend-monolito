@@ -21,4 +21,3 @@ import { HistoricoClinicosController } from './controllers/historico-clinicos.co
   exports: [HistoricoClinicosService],
 })
 export class HistoricoClinicosModule {}
-

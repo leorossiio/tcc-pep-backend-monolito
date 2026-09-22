@@ -1,4 +1,11 @@
-import { createHmac, createHash, createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
+import {
+  createHmac,
+  createHash,
+  createCipheriv,
+  createDecipheriv,
+  randomBytes,
+  scryptSync,
+} from 'crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 
@@ -47,9 +54,14 @@ export function encryptNome(plaintext: string): string {
   const key = getEncryptionKey();
   const iv = randomBytes(12); // IV de 96 bits (recomendado para GCM)
   const cipher = createCipheriv(ALGORITHM, key, iv);
-  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  const encrypted = Buffer.concat([
+    cipher.update(plaintext, 'utf8'),
+    cipher.final(),
+  ]);
   const authTag = cipher.getAuthTag(); // 16 bytes
-  return iv.toString('hex') + authTag.toString('hex') + encrypted.toString('hex');
+  return (
+    iv.toString('hex') + authTag.toString('hex') + encrypted.toString('hex')
+  );
 }
 
 /**
@@ -57,7 +69,7 @@ export function encryptNome(plaintext: string): string {
  */
 export function decryptNome(encryptedData: string): string {
   const key = getEncryptionKey();
-  const iv = Buffer.from(encryptedData.slice(0, 24), 'hex');       // 12 bytes
+  const iv = Buffer.from(encryptedData.slice(0, 24), 'hex'); // 12 bytes
   const authTag = Buffer.from(encryptedData.slice(24, 56), 'hex'); // 16 bytes
   const ciphertext = Buffer.from(encryptedData.slice(56), 'hex');
   const decipher = createDecipheriv(ALGORITHM, key, iv);

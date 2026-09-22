@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { LogsAuditoriaService } from '../services/logs-auditoria.service';
 
@@ -19,7 +14,9 @@ export class LogsAuditoriaController {
   constructor(private readonly logsAuditoriaService: LogsAuditoriaService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Listar todos os logs de auditoria (gerados automaticamente)' })
+  @ApiOperation({
+    summary: 'Listar todos os logs de auditoria (gerados automaticamente)',
+  })
   @ApiResponse({ status: 200, description: 'Lista de logs de auditoria' })
   findAll() {
     return this.logsAuditoriaService.findAll();
@@ -38,12 +35,16 @@ export class LogsAuditoriaController {
   @ApiOperation({ summary: 'Listar logs de auditoria de um atendimento' })
   @ApiParam({ name: 'atendimentoId', type: 'string', format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Logs do atendimento' })
-  findByAtendimento(@Param('atendimentoId', ParseUUIDPipe) atendimentoId: string) {
+  findByAtendimento(
+    @Param('atendimentoId', ParseUUIDPipe) atendimentoId: string,
+  ) {
     return this.logsAuditoriaService.findByAtendimento(atendimentoId);
   }
 
   @Get('entidade/:entidade/:entidadeId')
-  @ApiOperation({ summary: 'Listar logs por entidade e ID (ex: ConsultaLaudo / uuid)' })
+  @ApiOperation({
+    summary: 'Listar logs por entidade e ID (ex: ConsultaLaudo / uuid)',
+  })
   @ApiParam({ name: 'entidade', type: 'string', example: 'ConsultaLaudo' })
   @ApiParam({ name: 'entidadeId', type: 'string' })
   @ApiResponse({ status: 200, description: 'Logs da entidade' })

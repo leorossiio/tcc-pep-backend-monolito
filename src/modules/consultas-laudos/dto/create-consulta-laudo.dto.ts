@@ -27,48 +27,75 @@ export class ExameAnexoDto {
 
 export class NovaAlergiaDto {
   @IsString() @IsNotEmpty() substancia!: string;
-  @IsEnum(['leve', 'moderada', 'grave']) severidade!: 'leve' | 'moderada' | 'grave';
+  @IsEnum(['leve', 'moderada', 'grave']) severidade!:
+    | 'leve'
+    | 'moderada'
+    | 'grave';
   @IsString() @IsOptional() reacao?: string;
 }
 
 export class CreateConsultaLaudoDto {
   @ApiProperty({ description: 'UUID do atendimento no PostgreSQL (FK lógica)' })
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   atendimentoId!: string;
 
-  @ApiProperty({ description: '_id do histórico clínico no MongoDB (FK lógica)' })
-  @IsString() @IsNotEmpty()
+  @ApiProperty({
+    description: '_id do histórico clínico no MongoDB (FK lógica)',
+  })
+  @IsString()
+  @IsNotEmpty()
   historicoId!: string;
-  
-  @ApiProperty({ description: 'UUID do paciente no PostgreSQL — usado para atualizar o histórico clínico' })
-  @IsUUID() @IsNotEmpty()
+
+  @ApiProperty({
+    description:
+      'UUID do paciente no PostgreSQL — usado para atualizar o histórico clínico',
+  })
+  @IsUUID()
+  @IsNotEmpty()
   pacienteId!: string;
 
   @ApiProperty({ description: 'UUID do médico responsável no PostgreSQL' })
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   medicoId!: string;
 
   @ApiProperty({ description: 'Data e hora do registro' })
-  @IsDateString() @IsNotEmpty()
+  @IsDateString()
+  @IsNotEmpty()
   dataRegistro!: Date;
 
-  @ApiProperty({ description: 'Tipo: TRIAGEM | CONSULTA | LAUDO | EVOLUCAO | ALTA | PRESCRICAO' })
-  @IsString() @IsNotEmpty()
+  @ApiProperty({
+    description:
+      'Tipo: TRIAGEM | CONSULTA | LAUDO | EVOLUCAO | ALTA | PRESCRICAO',
+  })
+  @IsString()
+  @IsNotEmpty()
   tipoRegistro!: string;
 
   @ApiProperty({ description: 'Descrição clínica em texto livre' })
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   descricaoClinica!: string;
 
   @ApiPropertyOptional({ type: [PrescricaoDto] })
-  @IsArray() @ValidateNested({ each: true }) @Type(() => PrescricaoDto) @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PrescricaoDto)
+  @IsOptional()
   prescricoes?: PrescricaoDto[];
 
   @ApiPropertyOptional({ type: [ExameAnexoDto] })
-  @IsArray() @ValidateNested({ each: true }) @Type(() => ExameAnexoDto) @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ExameAnexoDto)
+  @IsOptional()
   examesAnexos?: ExameAnexoDto[];
 
   @ApiPropertyOptional({ type: [NovaAlergiaDto] })
-  @IsArray() @ValidateNested({ each: true }) @Type(() => NovaAlergiaDto) @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => NovaAlergiaDto)
+  @IsOptional()
   novasAlergiasIdentificadas?: NovaAlergiaDto[];
 }

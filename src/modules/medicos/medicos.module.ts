@@ -9,7 +9,12 @@ import { ConsultasLaudosModule } from '../consultas-laudos/consultas-laudos.modu
 import { LogsAuditoriaModule } from '../logs-auditoria/logs-auditoria.module'; // <-- Importe o módulo
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Medico]), AtendimentosModule, ConsultasLaudosModule, LogsAuditoriaModule],
+  imports: [
+    TypeOrmModule.forFeature([Medico]),
+    AtendimentosModule,
+    ConsultasLaudosModule,
+    LogsAuditoriaModule,
+  ],
   controllers: [MedicosController],
   providers: [MedicosService, MedicosRepository],
   exports: [MedicosService, MedicosRepository],

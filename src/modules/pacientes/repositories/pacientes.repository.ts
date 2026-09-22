@@ -33,5 +33,4 @@ export class PacientesRepository {
   async findOneById(id: string): Promise<Paciente | null> {
     return this.repo.findOneBy({ id });
   }
-
 }

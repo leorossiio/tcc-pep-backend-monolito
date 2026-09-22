@@ -14,24 +14,29 @@ import { Type } from 'class-transformer';
 // ─── Sub-DTOs ─────────────────────────────────────────────────────────────────
 
 export class AlergiaDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   substancia!: string;
 
   @IsEnum(['leve', 'moderada', 'grave'])
   severidade!: 'leve' | 'moderada' | 'grave';
 
-  @IsString() @IsOptional()
+  @IsString()
+  @IsOptional()
   reacao?: string;
 }
 
 export class ComorbidadeDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   descricao!: string;
 
-  @IsString() @IsOptional()
+  @IsString()
+  @IsOptional()
   cid10?: string;
 
-  @IsDateString() @IsOptional()
+  @IsDateString()
+  @IsOptional()
   dataDiagnostico?: Date;
 
   @IsBoolean()
@@ -39,10 +44,12 @@ export class ComorbidadeDto {
 }
 
 export class TipoSanguineoIncompativelDto {
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   tipo!: string;
 
-  @IsString() @IsOptional()
+  @IsString()
+  @IsOptional()
   motivo?: string;
 }
 
@@ -50,19 +57,23 @@ export class MetadadosLgpdDto {
   @IsBoolean()
   consentimentoColetado!: boolean;
 
-  @IsDateString() @IsOptional()
+  @IsDateString()
+  @IsOptional()
   dataConsentimento?: Date;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   finalidadeTratamento!: string;
 
-  @IsString() @IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   responsavelTratamento!: string;
 
   @IsBoolean()
   anonimizado!: boolean;
 
-  @IsDateString() @IsOptional()
+  @IsDateString()
+  @IsOptional()
   dataExclusaoSolicitada?: Date;
 }
 
@@ -98,7 +109,10 @@ export class CreateHistoricoClinicoDto {
   @IsOptional()
   tiposSanguineosIncompativeis?: TipoSanguineoIncompativelDto[];
 
-  @ApiProperty({ type: MetadadosLgpdDto, description: 'Metadados de conformidade LGPD (obrigatório)' })
+  @ApiProperty({
+    type: MetadadosLgpdDto,
+    description: 'Metadados de conformidade LGPD (obrigatório)',
+  })
   @ValidateNested()
   @Type(() => MetadadosLgpdDto)
   metadadosLgpd!: MetadadosLgpdDto;

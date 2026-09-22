@@ -11,11 +11,11 @@ import { Medico } from '../../medicos/entities/medico.entity';
 import { LogAuditoria } from '../../logs-auditoria/entities/logs-auditoria.entity';
 
 export enum RiscoManchester {
-  VERMELHO = 'VERMELHO',     // Imediato
-  LARANJA = 'LARANJA',       // Muito urgente
-  AMARELO = 'AMARELO',       // Urgente
-  VERDE = 'VERDE',           // Pouco urgente
-  AZUL = 'AZUL',             // Não urgente
+  VERMELHO = 'VERMELHO', // Imediato
+  LARANJA = 'LARANJA', // Muito urgente
+  AMARELO = 'AMARELO', // Urgente
+  VERDE = 'VERDE', // Pouco urgente
+  AZUL = 'AZUL', // Não urgente
 }
 
 @Entity('atendimentos_pg')
@@ -44,7 +44,13 @@ export class Atendimento {
   @Column({ name: 'saturacao_oxigenio', type: 'int', nullable: true })
   saturacaoOxigenio!: number;
 
-  @Column({ name: 'temperatura_corporal', type: 'decimal', precision: 4, scale: 1, nullable: true })
+  @Column({
+    name: 'temperatura_corporal',
+    type: 'decimal',
+    precision: 4,
+    scale: 1,
+    nullable: true,
+  })
   temperaturaCorporal!: number;
 
   @Column({ name: 'frequencia_respiratoria', type: 'int', nullable: true })

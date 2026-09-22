@@ -1,15 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { 
-  IsUUID, 
-  IsNotEmpty, 
-  IsString, 
-  IsOptional, 
-  IsInt, 
-  IsNumber, 
-  IsDateString, 
-  IsEnum, 
-  Min, 
-  Max 
+import {
+  IsUUID,
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsInt,
+  IsNumber,
+  IsDateString,
+  IsEnum,
+  Min,
+  Max,
 } from 'class-validator';
 import { RiscoManchester } from '../entities/atendimento.entity'; // Ajuste o caminho se necessário
 
@@ -24,7 +24,10 @@ export class CreateAtendimentoDto {
   @IsNotEmpty()
   medicoTriagemId!: string;
 
-  @ApiProperty({ description: 'Data e hora da entrada no formato ISO 8601 (ex: 2026-05-11T14:30:00Z)' })
+  @ApiProperty({
+    description:
+      'Data e hora da entrada no formato ISO 8601 (ex: 2026-05-11T14:30:00Z)',
+  })
   @IsDateString()
   @IsNotEmpty()
   dataHoraEntrada!: string;
@@ -63,7 +66,10 @@ export class CreateAtendimentoDto {
   @IsOptional()
   frequenciaRespiratoria?: number;
 
-  @ApiProperty({ enum: RiscoManchester, description: 'Classificação de risco de Manchester' })
+  @ApiProperty({
+    enum: RiscoManchester,
+    description: 'Classificação de risco de Manchester',
+  })
   @IsEnum(RiscoManchester)
   @IsNotEmpty()
   classificacaoRisco!: RiscoManchester;

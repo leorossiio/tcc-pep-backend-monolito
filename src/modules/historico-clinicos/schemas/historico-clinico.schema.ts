@@ -11,21 +11,21 @@ export class Alergia {
 
 export class Comorbidade {
   descricao!: string;
-  cid10?: string;             // ex: "E11" – Diabetes tipo 2
+  cid10?: string; // ex: "E11" – Diabetes tipo 2
   dataDiagnostico?: Date;
   ativa!: boolean;
 }
 
 export class TipoSanguineoIncompativel {
-  tipo!: string;              // ex: "A+", "B-"
+  tipo!: string; // ex: "A+", "B-"
   motivo?: string;
 }
 
 export class MetadadosLgpd {
   consentimentoColetado!: boolean;
   dataConsentimento?: Date;
-  finalidadeTratamento!: string;   // ex: "assistência à saúde"
-  responsavelTratamento!: string;  // nome ou CRM do responsável
+  finalidadeTratamento!: string; // ex: "assistência à saúde"
+  responsavelTratamento!: string; // nome ou CRM do responsável
   anonimizado!: boolean;
   dataExclusaoSolicitada?: Date;
 }
@@ -134,4 +134,3 @@ HistoricoClinicoSchema.index({ 'alergiasConhecidas.severidade': 1 });
 
 // Auditoria LGPD — localizar registros com solicitação de exclusão pendente
 HistoricoClinicoSchema.index({ 'metadadosLgpd.dataExclusaoSolicitada': 1 });
-

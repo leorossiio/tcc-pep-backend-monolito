@@ -7,12 +7,16 @@ export class CreateMedicoDto {
   @IsNotEmpty()
   nomeCompleto!: string;
 
-  @ApiProperty({ description: 'CRM do médico (único por estado, ex: 123456/SP)' })
+  @ApiProperty({
+    description: 'CRM do médico (único por estado, ex: 123456/SP)',
+  })
   @IsString()
   @IsNotEmpty()
   crm!: string;
 
-  @ApiProperty({ description: 'Especialidade médica (ex: Clínica Geral, Cardiologia)' })
+  @ApiProperty({
+    description: 'Especialidade médica (ex: Clínica Geral, Cardiologia)',
+  })
   @IsString()
   @IsNotEmpty()
   especialidade!: string;

@@ -36,7 +36,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const res = context.switchToHttp().getResponse<Response>();
     const { method } = req;
     // Normaliza o path: /atendimentos/uuid-aqui → /atendimentos/:id
-    const path = req.route?.path ?? req.url;
+    const path = (req.route as { path?: string } | undefined)?.path ?? req.url;
     const inicio = Date.now();
 
     return next.handle().pipe(
@@ -47,7 +47,9 @@ export class LoggingInterceptor implements NestInterceptor {
         httpDuration.labels(method, path, status).observe(duracao);
         httpTotal.labels(method, path, status).inc();
 
-        this.logger.log(`${method} ${path} ${status} — ${(duracao * 1000).toFixed(1)}ms`);
+        this.logger.log(
+          `${method} ${path} ${status} — ${(duracao * 1000).toFixed(1)}ms`,
+        );
       }),
     );
   }

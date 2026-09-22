@@ -72,7 +72,11 @@ export class MedicosService {
     return medico;
   }
 
-  async update(id: string, dto: UpdateMedicoDto, req?: Request): Promise<Medico> {
+  async update(
+    id: string,
+    dto: UpdateMedicoDto,
+    req?: Request,
+  ): Promise<Medico> {
     const medico = await this.findOne(id);
 
     if (dto.crm && dto.crm !== medico.crm) {
@@ -118,7 +122,8 @@ export class MedicosService {
 
   async getAtendimentos(id: string) {
     const medico = await this.findOne(id);
-    const atendimentos = await this.atendimentosService.findComLaudosByMedicoId(id);
+    const atendimentos =
+      await this.atendimentosService.findComLaudosByMedicoId(id);
     return { medico, atendimentos };
   }
 
@@ -126,7 +131,8 @@ export class MedicosService {
     const medico = await this.findOne(id);
     const laudos = await this.consultasLaudosService.findByMedicoId(id);
     const atendimentoIds = [...new Set(laudos.map((l) => l.atendimentoId))];
-    const atendimentos = await this.atendimentosService.findByIds(atendimentoIds);
+    const atendimentos =
+      await this.atendimentosService.findByIds(atendimentoIds);
     return { medico, laudos, atendimentos };
   }
 }

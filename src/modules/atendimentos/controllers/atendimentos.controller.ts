@@ -48,7 +48,9 @@ export class AtendimentosController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Atualiza parcialmente um atendimento + gera log automático' })
+  @ApiOperation({
+    summary: 'Atualiza parcialmente um atendimento + gera log automático',
+  })
   @ApiParam({ name: 'id', description: 'UUID do atendimento' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -60,7 +62,9 @@ export class AtendimentosController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Remove atendimento + gera log automático de remoção' })
+  @ApiOperation({
+    summary: 'Remove atendimento + gera log automático de remoção',
+  })
   @ApiResponse({ status: 200, description: 'Atendimento removido com sucesso' })
   @ApiResponse({ status: 404, description: 'Atendimento não encontrado' })
   @ApiParam({ name: 'id', description: 'UUID do atendimento' })

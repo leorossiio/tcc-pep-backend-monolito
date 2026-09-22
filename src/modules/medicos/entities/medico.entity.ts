@@ -28,5 +28,4 @@ export class Medico {
 
   @UpdateDateColumn({ name: 'atualizado_em', type: 'timestamp' })
   atualizadoEm!: Date;
-
 }

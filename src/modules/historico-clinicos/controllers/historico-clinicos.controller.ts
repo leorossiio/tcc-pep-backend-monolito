@@ -28,7 +28,10 @@ export class HistoricoClinicosController {
   @ApiOperation({
     summary: 'Busca histórico clínico pelo UUID do paciente (MongoDB)',
   })
-  @ApiParam({ name: 'pacienteId', description: 'UUID do paciente no PostgreSQL' })
+  @ApiParam({
+    name: 'pacienteId',
+    description: 'UUID do paciente no PostgreSQL',
+  })
   findByPacienteId(@Param('pacienteId') pacienteId: string) {
     return this.historicoClinicosService.findByPacienteId(pacienteId);
   }

@@ -26,7 +26,10 @@ export class ConsultasLaudosController {
     description:
       'Persiste no MongoDB, propaga novas alergias ao histórico clínico e gera log de auditoria automaticamente.',
   })
-  @ApiResponse({ status: 201, description: 'Consulta/laudo criado com sucesso' })
+  @ApiResponse({
+    status: 201,
+    description: 'Consulta/laudo criado com sucesso',
+  })
   create(@Body() dto: CreateConsultaLaudoDto, @Req() req: any) {
     return this.consultasLaudosService.create(dto, req);
   }
@@ -48,7 +51,9 @@ export class ConsultasLaudosController {
   }
 
   @Get('paciente/:pacienteId')
-  @ApiOperation({ summary: 'Busca todas as consultas/laudos de um paciente (MongoDB)' })
+  @ApiOperation({
+    summary: 'Busca todas as consultas/laudos de um paciente (MongoDB)',
+  })
   @ApiParam({
     name: 'pacienteId',
     description: 'UUID do paciente no PostgreSQL',

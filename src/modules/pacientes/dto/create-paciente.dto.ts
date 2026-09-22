@@ -23,7 +23,9 @@ export class CreatePacienteDto {
   @IsNotEmpty()
   cpf!: string;
 
-  @ApiProperty({ description: 'Data de nascimento no formato ISO 8601 (ex: 1990-05-12)' })
+  @ApiProperty({
+    description: 'Data de nascimento no formato ISO 8601 (ex: 1990-05-12)',
+  })
   @IsDateString()
   @IsNotEmpty()
   dataNascimento!: string;
