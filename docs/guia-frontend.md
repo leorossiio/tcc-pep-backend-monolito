@@ -98,8 +98,8 @@ function extrairMensagem(body: any): string {
 | `GET` | `/medicos/ativos` | use em selects de formulário |
 | `GET` | `/medicos/:id` | — |
 | `PATCH` | `/medicos/:id` | — |
-| `GET` | `/medicos/:id/atendimentos` | join PG→MDB |
-| `GET` | `/medicos/:id/laudos` | join MDB→PG |
+| `GET` | `/medicos/:id/atendimentos` | join PG→MDB — retorna `{ medico, atendimentos }` |
+| `GET` | `/medicos/:id/laudos` | join MDB→PG — retorna `{ medico, laudos }` |
 | `DELETE` | `/medicos/:id` | — → 204 |
 
 ### Atendimentos
