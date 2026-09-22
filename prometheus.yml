@@ -2,7 +2,20 @@ global:
   scrape_interval: 5s
 
 scrape_configs:
+  # Metricas de aplicacao (prom-client): latencia por rota + metricas de
+  # processo do Node (process_cpu_seconds_total, process_resident_memory_bytes)
   - job_name: 'nestjs-monolito'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['app-monolito:3000']
+        labels:
+          stack: 'monolito'
+
+  # Metricas de contentor (cAdvisor): CPU e RAM de TODOS os contentores,
+  # inclusive PostgreSQL e MongoDB, que o /metrics da aplicacao nao alcanca.
+  # E daqui que sai a quarta metrica do trabalho: consumo de recursos.
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          stack: 'monolito'

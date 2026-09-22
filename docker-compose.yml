@@ -20,11 +20,14 @@ services:
       - mongo-pep
     networks:
       - pep_network
+    # Orcamento da stack: 4,0 CPU / 3,0 GB, espelhado com o de microsservicos.
+    # Camada de aplicacao: 2,0 CPU / 1536M. No MS os mesmos 2,0 CPU / 1536M sao
+    # repartidos entre o gateway e os seis servicos.
     deploy:
       resources:
         limits:
           cpus: '2.0'
-          memory: 1G
+          memory: 1536M
 
   postgres-pep:
     image: postgres:15-alpine
@@ -36,10 +39,14 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+    # Tuning dimensionado para o limite de 768M do contentor. Estes mesmos
+    # quatro parametros estao no compose do MS — sem isso um lado roda com
+    # shared_buffers=128MB (default) e o outro com o dobro, o que viesa
+    # qualquer medicao limitada por banco.
     command: >
       postgres
-      -c shared_buffers=256MB
-      -c effective_cache_size=768MB
+      -c shared_buffers=192MB
+      -c effective_cache_size=512MB
       -c max_connections=100
       -c work_mem=4MB
     ports:
@@ -53,7 +60,7 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 1G
+          memory: 768M
 
   mongo-pep:
     image: mongo:6.0
@@ -76,7 +83,27 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 1G
+          memory: 768M
+
+  # Instrumentacao: mede CPU e RAM de CADA contentor, inclusive PostgreSQL e
+  # MongoDB, que o /metrics das aplicacoes NestJS nao alcanca. Fica fora do
+  # orcamento de 4 CPU / 3G porque observa o experimento em vez de participar
+  # dele — assim como Prometheus e Grafana.
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: cadvisor_pep
+    restart: always
+    privileged: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - pep_network
 
   prometheus:
     image: prom/prometheus:latest
