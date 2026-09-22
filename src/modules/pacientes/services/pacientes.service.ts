@@ -52,10 +52,10 @@ export class PacientesService {
     }
 
     const paciente = new Paciente();
-    paciente.nomeCompleto    = encryptNome(dto.nomeCompleto);
-    paciente.sexo            = dto.sexo;
-    paciente.cpfHash         = cpfHash;
-    paciente.dataNascimento  = new Date(dto.dataNascimento);
+    paciente.nomeCompleto = encryptNome(dto.nomeCompleto);
+    paciente.sexo = dto.sexo;
+    paciente.cpfHash = cpfHash;
+    paciente.dataNascimento = new Date(dto.dataNascimento);
     paciente.telefoneContato = dto.telefoneContato ?? null;
     paciente.tipagemSanguinea = dto.tipagemSanguinea ?? null;
     paciente.consentimentoLgpd = dto.consentimentoLgpd;
@@ -87,19 +87,27 @@ export class PacientesService {
     return this.decrypt(paciente);
   }
 
-  async update(id: string, dto: UpdatePacienteDto, req?: Request): Promise<Paciente> {
+  async update(
+    id: string,
+    dto: UpdatePacienteDto,
+    req?: Request,
+  ): Promise<Paciente> {
     const paciente = await this.pacientesRepository.findOne(id);
     if (!paciente) {
       throw new NotFoundException(`Paciente #${id} não encontrado`);
     }
 
-    if (dto.cpf)            paciente.cpfHash       = hashCpf(dto.cpf);
-    if (dto.nomeCompleto)   paciente.nomeCompleto   = encryptNome(dto.nomeCompleto);
-    if (dto.sexo)           paciente.sexo           = dto.sexo;
-    if (dto.dataNascimento) paciente.dataNascimento = new Date(dto.dataNascimento);
-    if (dto.telefoneContato !== undefined)  paciente.telefoneContato  = dto.telefoneContato ?? null;
-    if (dto.tipagemSanguinea !== undefined) paciente.tipagemSanguinea = dto.tipagemSanguinea ?? null;
-    if (dto.consentimentoLgpd !== undefined) paciente.consentimentoLgpd = dto.consentimentoLgpd;
+    if (dto.cpf) paciente.cpfHash = hashCpf(dto.cpf);
+    if (dto.nomeCompleto) paciente.nomeCompleto = encryptNome(dto.nomeCompleto);
+    if (dto.sexo) paciente.sexo = dto.sexo;
+    if (dto.dataNascimento)
+      paciente.dataNascimento = new Date(dto.dataNascimento);
+    if (dto.telefoneContato !== undefined)
+      paciente.telefoneContato = dto.telefoneContato ?? null;
+    if (dto.tipagemSanguinea !== undefined)
+      paciente.tipagemSanguinea = dto.tipagemSanguinea ?? null;
+    if (dto.consentimentoLgpd !== undefined)
+      paciente.consentimentoLgpd = dto.consentimentoLgpd;
 
     const saved = await this.pacientesRepository.save(paciente);
 
@@ -116,13 +124,22 @@ export class PacientesService {
     return this.decrypt(saved);
   }
 
+  /**
+   * Eliminacao do paciente (LGPD art. 18, VI). A remocao precisa atravessar
+   * os dois bancos: atendimentos + documentos clinicos (MongoDB) antes do
+   * registro em PostgreSQL, que tem FK vinda dos atendimentos.
+   */
   async remove(id: string, req?: Request): Promise<void> {
     await this.findOne(id);
+
+    const atendimentosRemovidos =
+      await this.atendimentosService.removeByPacienteId(id);
+    await this.historicoClinicosService.removeByPacienteId(id);
     await this.pacientesRepository.remove(id);
 
     this.logsAuditoriaService.registrar({
       atendimentoId: null,
-      acaoRealizada: 'Paciente removido do sistema',
+      acaoRealizada: `Paciente removido do sistema — ${atendimentosRemovidos} atendimento(s) e documentos clinicos eliminados (LGPD art. 18, VI)`,
       ipOrigem: this.extractIp(req),
       entidadeAfetada: 'Paciente',
       entidadeId: id,

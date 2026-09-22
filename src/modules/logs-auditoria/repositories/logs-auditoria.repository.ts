@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { LogAuditoria } from '../entities/logs-auditoria.entity';
 
 @Injectable()
@@ -25,11 +25,28 @@ export class LogsAuditoriaRepository {
     });
   }
 
-  findByEntidade(entidadeAfetada: string, entidadeId: string): Promise<LogAuditoria[]> {
+  findByEntidade(
+    entidadeAfetada: string,
+    entidadeId: string,
+  ): Promise<LogAuditoria[]> {
     return this.repo.find({
       where: { entidadeAfetada, entidadeId },
       order: { dataHora: 'DESC' },
     });
+  }
+
+  /**
+   * Desvincula os logs dos atendimentos que serao eliminados, em vez de
+   * apaga-los: a trilha de auditoria e preservada (LGPD art. 37) enquanto o
+   * dado pessoal e eliminado (art. 18, VI). A coluna atendimento_id e nullable
+   * justamente para isso.
+   */
+  async desvincularAtendimentos(atendimentoIds: string[]): Promise<void> {
+    if (atendimentoIds.length === 0) return;
+    await this.repo.update(
+      { atendimentoId: In(atendimentoIds) },
+      { atendimentoId: null },
+    );
   }
 
   save(log: LogAuditoria): Promise<LogAuditoria> {

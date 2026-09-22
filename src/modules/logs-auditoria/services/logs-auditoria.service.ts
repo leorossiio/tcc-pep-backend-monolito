@@ -22,20 +22,26 @@ import { LogAuditoria } from '../entities/logs-auditoria.entity';
  */
 @Injectable()
 export class LogsAuditoriaService {
-  constructor(private readonly logsAuditoriaRepository: LogsAuditoriaRepository) {}
+  constructor(
+    private readonly logsAuditoriaRepository: LogsAuditoriaRepository,
+  ) {}
 
   /**
    * Registra um evento de auditoria de forma automática.
    * Falhas silenciosas — um erro de log nunca deve derrubar o fluxo principal.
    */
+  async desvincularAtendimentos(atendimentoIds: string[]): Promise<void> {
+    return this.logsAuditoriaRepository.desvincularAtendimentos(atendimentoIds);
+  }
+
   async registrar(dto: CreateLogAuditoriaDto): Promise<void> {
     try {
       const log = new LogAuditoria();
-      log.atendimentoId    = dto.atendimentoId ?? null;
-      log.acaoRealizada    = dto.acaoRealizada;
-      log.ipOrigem         = dto.ipOrigem ?? null;
-      log.entidadeAfetada  = dto.entidadeAfetada;
-      log.entidadeId       = dto.entidadeId ?? null;
+      log.atendimentoId = dto.atendimentoId ?? null;
+      log.acaoRealizada = dto.acaoRealizada;
+      log.ipOrigem = dto.ipOrigem ?? null;
+      log.entidadeAfetada = dto.entidadeAfetada;
+      log.entidadeId = dto.entidadeId ?? null;
       log.usuarioResponsavel = dto.usuarioResponsavel ?? 'sistema';
 
       await this.logsAuditoriaRepository.save(log);
@@ -56,7 +62,10 @@ export class LogsAuditoriaService {
   }
 
   /** Consulta logs de uma entidade específica (ex: todos os logs de um ConsultaLaudo). */
-  findByEntidade(entidade: string, entidadeId: string): Promise<LogAuditoria[]> {
+  findByEntidade(
+    entidade: string,
+    entidadeId: string,
+  ): Promise<LogAuditoria[]> {
     return this.logsAuditoriaRepository.findByEntidade(entidade, entidadeId);
   }
 

@@ -14,7 +14,9 @@ export class ConsultasLaudosRepository {
     private readonly model: Model<ConsultaLaudoDocument>,
   ) {}
 
-  async create(dto: CreateConsultaLaudoDto & { hashIntegridade: string }): Promise<ConsultaLaudoDocument> {
+  async create(
+    dto: CreateConsultaLaudoDto & { hashIntegridade: string },
+  ): Promise<ConsultaLaudoDocument> {
     const doc = new this.model(dto);
     return doc.save();
   }
@@ -29,8 +31,17 @@ export class ConsultasLaudosRepository {
     return this.model.find({ medicoId }).exec();
   }
 
-  async findByPacienteId(pacienteId: string): Promise<ConsultaLaudoDocument[]> {
-    return this.model.find({ pacienteId }).exec();
+  async findByAtendimentoIds(
+    atendimentoIds: string[],
+  ): Promise<ConsultaLaudoDocument[]> {
+    if (atendimentoIds.length === 0) return [];
+    return this.model.find({ atendimentoId: { $in: atendimentoIds } }).exec();
+  }
+
+  async findByHistoricoId(
+    historicoId: string,
+  ): Promise<ConsultaLaudoDocument[]> {
+    return this.model.find({ historicoId }).exec();
   }
 
   async findAll(): Promise<ConsultaLaudoDocument[]> {
@@ -41,7 +52,10 @@ export class ConsultasLaudosRepository {
     await this.model.deleteMany({ atendimentoId }).exec();
   }
 
-  async removeByPacienteId(pacienteId: string): Promise<void> {
-    await this.model.deleteMany({ pacienteId }).exec();
+  async removeByAtendimentoIds(atendimentoIds: string[]): Promise<void> {
+    if (atendimentoIds.length === 0) return;
+    await this.model
+      .deleteMany({ atendimentoId: { $in: atendimentoIds } })
+      .exec();
   }
 }

@@ -44,7 +44,7 @@ export class ConsultasLaudosService {
         ...dto,
         hashIntegridade,
       });
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException(
         'Falha ao persistir consulta/laudo no MongoDB',
       );
@@ -52,7 +52,10 @@ export class ConsultasLaudosService {
 
     // 2. Propagar novas alergias ao histórico clínico via pacienteId
     //    O histórico usa pacienteId (UUID do PG) como chave única — não o _id do MongoDB.
-    if (dto.novasAlergiasIdentificadas && dto.novasAlergiasIdentificadas.length > 0) {
+    if (
+      dto.novasAlergiasIdentificadas &&
+      dto.novasAlergiasIdentificadas.length > 0
+    ) {
       await this.historicoClinicosService.adicionarAlergias(
         dto.pacienteId,
         dto.novasAlergiasIdentificadas,
@@ -65,7 +68,7 @@ export class ConsultasLaudosService {
       acaoRealizada: `${dto.tipoRegistro} registrado pelo médico ${dto.medicoId}`,
       ipOrigem: this.extractIp(req),
       entidadeAfetada: 'ConsultaLaudo',
-      entidadeId: (documento._id as object).toString(),
+      entidadeId: String(documento._id),
       usuarioResponsavel: dto.medicoId,
     });
 
@@ -82,11 +85,37 @@ export class ConsultasLaudosService {
     return this.consultasLaudosRepository.findByMedicoId(medicoId);
   }
 
+  /**
+   * O documento clinico nao guarda pacienteId — o vinculo com o paciente e
+   * feito pelo historico clinico (1 por paciente). Resolve o historico e
+   * entao busca os laudos que o referenciam.
+   */
   async findByPacienteId(pacienteId: string): Promise<ConsultaLaudoDocument[]> {
-    return this.consultasLaudosRepository.findByPacienteId(pacienteId);
+    const historico =
+      await this.historicoClinicosService.findByPacienteId(pacienteId);
+    if (!historico) return [];
+    return this.consultasLaudosRepository.findByHistoricoId(
+      String(historico._id),
+    );
+  }
+
+  async findByAtendimentoIds(
+    atendimentoIds: string[],
+  ): Promise<ConsultaLaudoDocument[]> {
+    return this.consultasLaudosRepository.findByAtendimentoIds(atendimentoIds);
   }
 
   async findAll(): Promise<ConsultaLaudoDocument[]> {
     return this.consultasLaudosRepository.findAll();
+  }
+
+  async removeByAtendimentoId(atendimentoId: string): Promise<void> {
+    return this.consultasLaudosRepository.removeByAtendimentoId(atendimentoId);
+  }
+
+  async removeByAtendimentoIds(atendimentoIds: string[]): Promise<void> {
+    return this.consultasLaudosRepository.removeByAtendimentoIds(
+      atendimentoIds,
+    );
   }
 }

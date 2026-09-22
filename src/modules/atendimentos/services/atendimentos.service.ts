@@ -45,7 +45,7 @@ export class AtendimentosService {
     let atendimentoSalvo: Atendimento;
     try {
       atendimentoSalvo = await this.atendimentosRepository.create(dto);
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException(
         'Falha ao persistir atendimento no PostgreSQL',
       );
@@ -67,14 +67,14 @@ export class AtendimentosService {
     try {
       await this.consultasLaudosService.create({
         atendimentoId: atendimentoSalvo.id,
-        historicoId: (historico._id as object).toString(),
+        historicoId: String(historico._id),
         medicoId: dto.medicoTriagemId,
         dataRegistro: new Date(),
         tipoRegistro: 'TRIAGEM',
         descricaoClinica: dto.queixaPrincipal,
         pacienteId: dto.pacienteId,
       });
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException(
         'Falha ao persistir triagem no MongoDB',
       );
@@ -125,10 +125,11 @@ export class AtendimentosService {
    * em apenas duas queries e agrupa os laudos por atendimentoId em memória.
    */
   async findComLaudosByPacienteId(pacienteId: string) {
-    const [atendimentos, laudos] = await Promise.all([
-      this.atendimentosRepository.findByPacienteId(pacienteId),
-      this.consultasLaudosService.findByPacienteId(pacienteId),
-    ]);
+    const atendimentos =
+      await this.atendimentosRepository.findByPacienteId(pacienteId);
+    const laudos = await this.consultasLaudosService.findByAtendimentoIds(
+      atendimentos.map((a) => a.id),
+    );
 
     const laudosPorAtendimento = new Map<string, typeof laudos>();
     for (const laudo of laudos) {
@@ -177,6 +178,24 @@ export class AtendimentosService {
     return atualizado;
   }
 
+  /**
+   * Remocao em cascata dos atendimentos de um paciente (LGPD art. 18, VI).
+   * Sem transacao distribuida: apaga o MongoDB primeiro e o PostgreSQL depois.
+   * Se o segundo passo falhar sobra atendimento sem laudo — inconsistencia
+   * detectavel — em vez de documento clinico orfao, que seria invisivel.
+   */
+  async removeByPacienteId(pacienteId: string): Promise<number> {
+    const atendimentos =
+      await this.atendimentosRepository.findByPacienteId(pacienteId);
+    if (atendimentos.length === 0) return 0;
+
+    const ids = atendimentos.map((a) => a.id);
+    await this.consultasLaudosService.removeByAtendimentoIds(ids);
+    await this.logsAuditoriaService.desvincularAtendimentos(ids);
+    await this.atendimentosRepository.removeByPacienteId(pacienteId);
+    return atendimentos.length;
+  }
+
   // DELETE + auditoria automática
   async remove(id: string, req?: Request) {
     const atendimento = await this.atendimentosRepository.findOneById(id);
@@ -184,11 +203,17 @@ export class AtendimentosService {
       throw new NotFoundException(`Atendimento com ID "${id}" não encontrado`);
     }
 
+    // Os documentos clinicos (MongoDB) saem junto — senao ficam orfaos,
+    // invisiveis para a API e fora do alcance do direito a elimincao (LGPD).
+    await this.consultasLaudosService.removeByAtendimentoId(id);
+    await this.logsAuditoriaService.desvincularAtendimentos([id]);
     await this.atendimentosRepository.remove(id);
 
+    // atendimentoId fica null: o registro acabou de ser eliminado e a FK do
+    // log nao aceitaria a referencia. O id segue rastreavel em entidadeId.
     this.logsAuditoriaService.registrar({
-      atendimentoId: id,
-      acaoRealizada: `Atendimento removido`,
+      atendimentoId: null,
+      acaoRealizada: `Atendimento removido — documentos clinicos eliminados`,
       ipOrigem: this.extractIp(req),
       entidadeAfetada: 'Atendimento',
       entidadeId: id,

@@ -1,7 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { HistoricoClinicosRepository } from '../repositories/historico-clinicos.repository';
 import { CreateHistoricoClinicoDto } from '../dto/create-historico-clinico.dto';
-import { HistoricoClinicoDocument, Alergia } from '../schemas/historico-clinico.schema';
+import {
+  HistoricoClinicoDocument,
+  Alergia,
+} from '../schemas/historico-clinico.schema';
 import { hashDocument } from '../../../common/utils/crypto.util';
 
 /**
@@ -36,7 +39,7 @@ export class HistoricoClinicosService {
         ...dto,
         hashIntegridade,
       });
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException(
         'Falha ao criar histórico clínico no MongoDB',
       );
@@ -70,5 +73,9 @@ export class HistoricoClinicosService {
 
   async findAll(): Promise<HistoricoClinicoDocument[]> {
     return this.historicoClinicosRepository.findAll();
+  }
+
+  async removeByPacienteId(pacienteId: string): Promise<void> {
+    return this.historicoClinicosRepository.removeByPacienteId(pacienteId);
   }
 }
